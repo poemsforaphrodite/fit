@@ -11,6 +11,7 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Dashboard from './pages/Dashboard';
+import Server from './Server';
 
 
 const App = () => (

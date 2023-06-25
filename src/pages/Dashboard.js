@@ -1,58 +1,46 @@
 import React, { useState } from 'react';
 
-const Dashboard = () => {
-    const [form, setForm] = useState({
-        age: '',
-        height: '',
-        weight: '',
-        fitnessGoals: ''
-    });
 
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value
+const Dashboard = () => {
+    const [age, setAge] = useState('');
+    const [height, setHeight] = useState('');
+    const [weight, setWeight] = useState('');
+    const [fitnessGoals, setFitnessGoals] = useState('');
+
+    const handleOnSubmit = (e) => {
+        e.preventDefault();
+
+        const user = { age, height, weight, fitnessGoals };
+
+        fetch('http://localhost:3000/Dashboard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(user),
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch((error) => {
+            console.error('Error:', error);
         });
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log(form);
-    };
-
     return (
-        <div className="font-sans bg-gray-900 text-white min-h-screen flex items-center justify-center">
-            <form onSubmit={handleSubmit} className="w-96 space-y-6">
-                <div className="text-center py-1 bg-gray-700 rounded">
-                    <h1 className="text-lg">Dashboard Page</h1>
-                </div>
-                <div>
-                    <label className="block text-sm">
-                        Age:
-                    </label>
-                    <input type="number" name="age" value={form.age} onChange={handleChange} className="w-full py-1 px-2 rounded border-none bg-gray-800" />
-                </div>
-                <div>
-                    <label className="block text-sm">
-                        Height:
-                    </label>
-                    <input type="number" name="height" value={form.height} onChange={handleChange} className="w-full py-1 px-2 rounded border-none bg-gray-800" />
-                </div>
-                <div>
-                    <label className="block text-sm">
-                        Weight:
-                    </label>
-                    <input type="number" name="weight" value={form.weight} onChange={handleChange} className="w-full py-1 px-2 rounded border-none bg-gray-800" />
-                </div>
-                <div>
-                    <label className="block text-sm">
-                        Fitness Goals:
-                    </label>
-                    <textarea name="fitnessGoals" value={form.fitnessGoals} onChange={handleChange} className="w-full py-1 px-2 rounded border-none bg-gray-800" />
-                </div>
-                <button type="submit" className="w-full py-1 text-sm text-white bg-blue-600 rounded cursor-pointer">Submit</button>
+        <>
+            <h1>This is React WebApp </h1>
+            <form onSubmit={handleOnSubmit}>
+                <input type="number" placeholder="Age"
+                value={age} onChange={(e) => setAge(e.target.value)} />
+                <input type="number" placeholder="Height"
+                value={height} onChange={(e) => setHeight(e.target.value)} />
+                <input type="number" placeholder="Weight"
+                value={weight} onChange={(e) => setWeight(e.target.value)} />
+                <input type="text" placeholder="Fitness Goals"
+                value={fitnessGoals} onChange={(e) => setFitnessGoals(e.target.value)} />
+                <button type="submit">submit</button>
             </form>
-        </div>
+        </>
     );
 };
 
