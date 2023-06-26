@@ -11,8 +11,7 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import FAQ from './pages/FAQ';
 import Dashboard from './pages/Dashboard';
-import Server from './Server';
-
+//import Server from './pages/Server';
 
 const App = () => (
   <Box width="400px" sx={{ width: { xl: '1488px' } }} m="auto">
