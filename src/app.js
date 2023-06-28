@@ -1,5 +1,6 @@
 const express = require('express');
-const collection = require("./mongo");
+const { Appointment, collection } = require('./mongo');
+
 const cors = require('cors');
 const app = express();
 app.use(express.json());
@@ -16,7 +17,6 @@ app.post("/login", cors(), async (req, res) => {
 
     try {
         const user = await collection.findOne({ email: email });
-
         if (user) {
             if (user.password === password) {
                 res.json("Logged in successfully");
@@ -70,6 +70,29 @@ app.post("/update", cors(), async (req, res) => {
         res.json(e);
     }
 });
+app.post("/BookAppointment", cors(), async (req, res) => {
+    console.log(req.body); // This will log the request body
+
+    const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
+    try {
+        const newAppointment = new Appointment({
+            userId,
+            therapistId,
+            appointmentDate,
+            appointmentTime
+        });
+        try {
+            const savedAppointment = await newAppointment.save();
+            res.json({ message: 'Appointment booked successfully', appointment: savedAppointment });
+        } catch (saveError) {
+            console.error('Error saving appointment:', saveError);
+            res.json({ message: 'Error saving appointment', error: saveError });
+        }
+    } catch (e) {
+        res.json({ message: 'Error booking appointment', error: e });
+    }
+});
+
 
 
 app.listen(8000, () => {

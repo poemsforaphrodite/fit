@@ -13,6 +13,7 @@ import FAQ from './pages/FAQ';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import BookAppointment from './pages/BookAppointment';
 
 const App = () => {
   const location = useLocation();
@@ -29,6 +30,7 @@ const App = () => {
         <Route path ="/FAQ" element = {<FAQ />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/Signup"element={<Signup/>} />
+        <Route path="/BookAppointment" element={<BookAppointment />} />
       </Routes>
       {location.pathname !== "/" && location.pathname !== "/signup" && <Footer />}
     </Box>

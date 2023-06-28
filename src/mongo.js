@@ -12,7 +12,17 @@ const newSchema = new mongoose.Schema({
     height:{type: Number},
     fitnessGoals:{type: String}
 });
+const appointmentSchema = new mongoose.Schema({
+    userId: {type: Number},
+    therapistId: {type: Number},
+    appointmentDate: {type: Date, required: true},
+    appointmentTime: {type: String, required: true},
+    status: {type: String, default: 'pending'}
+});
+
+const Appointment = mongoose.model('Appointment', appointmentSchema);
 
 const collection = mongoose.model('collection', newSchema);
 
-module.exports = collection;
+
+module.exports = { Appointment, collection };

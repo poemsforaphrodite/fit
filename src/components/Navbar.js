@@ -24,6 +24,7 @@ const Navbar = () => (
         <a href="/Contact" style={{ textDecoration: 'none', color: '#3A1212' }}>Contact</a>
         <a href="/FAQ" style={{ textDecoration: 'none', color: '#3A1212' }}>FAQ</a>
         <a href="/Dashboard" style={{ textDecoration: 'none', color: '#3A1212' }}>Dashboard</a>
+        <a href="/BookAppointment" style={{ textDecoration: 'none', color: '#3A1212' }}>Book Appointment</a>
       </Stack>
       <a href="/Login" style={{ 
         textDecoration: 'none', 
