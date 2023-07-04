@@ -1,5 +1,6 @@
 const express = require('express');
-const { Appointment, collection } = require('./mongo');
+const { User, Appointment } = require('./mongo'); // Updated import
+const mongoose = require('mongoose');
 
 const cors = require('cors');
 const app = express();
@@ -16,7 +17,7 @@ app.post("/login", cors(), async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await collection.findOne({ email: email });
+        const user = await User.findOne({ email: email });
         if (user) {
             if (user.password === password) {
                 res.json("Logged in successfully");
@@ -39,11 +40,11 @@ app.post("/signup",cors(), async (req, res) => {
         password:password
     }
     try{
-        const check = await collection.findOne({email:email});
+        const check = await User.findOne({email:email});
         if(check){
             res.json("exist")
         }else{
-            await collection.insertMany([data]);
+            await User.insertMany([data]);
             res.json("not exist")
         }
     }
@@ -55,7 +56,7 @@ app.post("/signup",cors(), async (req, res) => {
 app.post("/update", cors(), async (req, res) => {
     const { email, age, weight, height, fitnessGoals } = req.body;
     try {
-        const user = await collection.findOne({ email: email });
+        const user = await User.findOne({ email: email });
         if (user) {
             user.age = age;
             user.weight = weight;
@@ -71,13 +72,13 @@ app.post("/update", cors(), async (req, res) => {
     }
 });
 app.post("/BookAppointment", cors(), async (req, res) => {
-    console.log(req.body); // This will log the request body
+    console.log('Request body:', req.body); // This will log the request body
 
     const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
     try {
         const newAppointment = new Appointment({
-            userId,
-            therapistId,
+            userId, 
+            therapistId,// Convert to ObjectId
             appointmentDate,
             appointmentTime
         });
@@ -86,9 +87,10 @@ app.post("/BookAppointment", cors(), async (req, res) => {
             res.json({ message: 'Appointment booked successfully', appointment: savedAppointment });
         } catch (saveError) {
             console.error('Error saving appointment:', saveError);
-            res.json({ message: 'Error saving appointment', error: saveError });
-        }
+            res.status(500).json({ message: 'Error saving appointment', error: saveError.message });
+        }          
     } catch (e) {
+        console.error('Error creating appointment:', e);
         res.json({ message: 'Error booking appointment', error: e });
     }
 });

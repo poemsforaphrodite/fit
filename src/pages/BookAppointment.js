@@ -19,7 +19,7 @@ const BookAppointment = () => {
                 appointmentTime: time,
                 status: 'pending',
             });
-
+            console.log(response);
             if (response.data) {
                 alert('Booked');
             }

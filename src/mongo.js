@@ -22,7 +22,7 @@ const appointmentSchema = new mongoose.Schema({
 
 const Appointment = mongoose.model('Appointment', appointmentSchema);
 
-const collection = mongoose.model('collection', newSchema);
+const User = mongoose.model('User', newSchema);
 
 
-module.exports = { Appointment, collection };
+module.exports = { Appointment, User };
