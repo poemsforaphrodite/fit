@@ -16,7 +16,7 @@ const Dashboard = () => {
             height, 
             weight, 
             fitnessGoals 
-        };
+        };  
     
         fetch('http://localhost:8000/update', {
             method: 'POST',
