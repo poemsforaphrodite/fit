@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const { User, Appointment } = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken")
@@ -14,14 +15,17 @@ app.get("/", cors(), (req, res) => {
 
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
-  const user = { name: email};
-
-  jwt.sign(user,)
   try {
     const user = await User.findOne({ email: email });
     if (user) {
       if (user.password === password) {
-        res.json("Logged in successfully");
+        const userId = user._id;
+        const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
+        res.cookie('userId', userId, { httpOnly: true }); // Set a cookie with the user's ID
+        res.json({
+          message: "Logged in successfully",
+          accessToken,
+          userId});
       } else {
         res.json("Incorrect password");
       }
@@ -73,11 +77,12 @@ app.post("/update", cors(), async (req, res) => {
 app.post("/BookAppointment", cors(), async (req, res) => {
   console.log("Request body:", req.body); // This will log the request body
 
-  const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
+  const { therapistId, appointmentDate, appointmentTime } = req.body;
+  const userId = req.cookies.userId;
   try {
     const newAppointment = new Appointment({
-      userId,
-      therapistId, // Convert to ObjectId
+      userId: mongoose.Types.ObjectId(userId), // Convert userId to ObjectId
+      therapistId: mongoose.Types.ObjectId(therapistId), // Convert therapistId to ObjectId
       appointmentDate,
       appointmentTime,
     });
@@ -89,18 +94,17 @@ app.post("/BookAppointment", cors(), async (req, res) => {
       });
     } catch (saveError) {
       console.error("Error saving appointment:", saveError);
-      res
-        .status(500)
-        .json({
-          message: "Error saving appointment",
-          error: saveError.message,
-        });
+      res.status(500).json({
+        message: "Error saving appointment",
+        error: saveError.message,
+      });
     }
   } catch (e) {
     console.error("Error creating appointment:", e);
     res.json({ message: "Error booking appointment", error: e });
   }
 });
+
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
