@@ -58,15 +58,18 @@ app.post("/signup", cors(), async (req, res) => {
 });
 
 app.post("/update", cors(), async (req, res) => {
-  const { email, age, weight, height, fitnessGoals } = req.body;
+  const { email, sex, age, height, weight, fitnessGoals, bodyFat, desiredBodyFat } = req.body;
   try {
     const user = await User.findOne({ email: email });
     if (user) {
+      user.sex = sex;
       user.age = age;
-      user.weight = weight;
       user.height = height;
+      user.weight = weight;
       user.fitnessGoals = fitnessGoals;
-      await user.save();
+      user.bodyFat = bodyFat;
+      user.desiredBodyFat = desiredBodyFat;
+ await user.save();
       res.json("User updated successfully");
     } else {
       res.json("User not found");
@@ -75,6 +78,7 @@ app.post("/update", cors(), async (req, res) => {
     res.json(e);
   }
 });
+
 app.post("/BookAppointment", cors(), async (req, res) => {
   console.log("Request body:", req.body);
   const { token, therapistId, appointmentDate, appointmentTime } = req.body;
