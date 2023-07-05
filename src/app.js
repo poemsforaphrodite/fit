@@ -1,7 +1,7 @@
 const express = require("express");
 const { User, Appointment } = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
-
+const jwt = require("jsonwebtoken")
 const cors = require("cors");
 const app = express();
 app.use(express.json());
@@ -14,7 +14,9 @@ app.get("/", cors(), (req, res) => {
 
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
+  const user = { name: email};
 
+  jwt.sign(user,)
   try {
     const user = await User.findOne({ email: email });
     if (user) {
