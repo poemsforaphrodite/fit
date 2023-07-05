@@ -1,6 +1,6 @@
 const express = require("express");
 require("dotenv").config();
-const { User, Appointment } = require("./mongo"); // Updated import
+const  User = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken")
 const cors = require("cors");
@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get("/", cors(), (req, res) => {
-  res.send("Hello World");
+  res.send("Hello Worldsssssss");
 });
 
 app.post("/login", cors(), async (req, res) => {
@@ -19,13 +19,9 @@ app.post("/login", cors(), async (req, res) => {
     const user = await User.findOne({ email: email });
     if (user) {
       if (user.password === password) {
-        const userId = user._id;
-        const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
-        res.cookie('userId', userId, { httpOnly: true }); // Set a cookie with the user's ID
-        res.json({
-          message: "Logged in successfully",
-          accessToken,
-          userId});
+        const token = jwt.sign({ email: email }, "secret-key");
+        //send token to
+        res.json("Logged in successfully");
       } else {
         res.json("Incorrect password");
       }
@@ -75,35 +71,54 @@ app.post("/update", cors(), async (req, res) => {
   }
 });
 app.post("/BookAppointment", cors(), async (req, res) => {
-  console.log("Request body:", req.body); // This will log the request body
+  console.log("Request body:", req.body);
+  const { token, therapistId, appointmentDate, appointmentTime } = req.body;
 
-  const { therapistId, appointmentDate, appointmentTime } = req.body;
-  const userId = req.cookies.userId;
   try {
-    const newAppointment = new Appointment({
-      userId: mongoose.Types.ObjectId(userId), // Convert userId to ObjectId
-      therapistId: mongoose.Types.ObjectId(therapistId), // Convert therapistId to ObjectId
-      appointmentDate,
-      appointmentTime,
+    // Verify the token
+    jwt.verify(token, "secret-key", async (err, decoded) => {
+      if (err) {
+        res.status(401).json({ message: "Invalid token" });
+        return;
+      }
+
+      const email = decoded.email;
+
+      try {
+        const user = await User.findOne({ email: email });
+        if (!user) {
+          res.status(404).json({ message: "User not found" });
+          return;
+        }
+        user.therapistId = therapistId;
+        user.appointmentDate = appointmentDate;
+        user.appointmentTime = appointmentTime;
+        user.status = "pending";
+
+        try {
+          const updatedUser = await user.save();
+          res.json({
+            message: "Appointment booked successfully",
+            user: updatedUser,
+          });
+        } catch (saveError) {
+          console.error("Error saving appointment:", saveError);
+          res.status(500).json({
+            message: "Error saving appointment",
+            error: saveError.message,
+          });
+        }
+      } catch (e) {
+        console.error("Error creating appointment:", e);
+        res.json({ message: "Error booking appointment", error: e });
+      }
     });
-    try {
-      const savedAppointment = await newAppointment.save();
-      res.json({
-        message: "Appointment booked successfully",
-        appointment: savedAppointment,
-      });
-    } catch (saveError) {
-      console.error("Error saving appointment:", saveError);
-      res.status(500).json({
-        message: "Error saving appointment",
-        error: saveError.message,
-      });
-    }
-  } catch (e) {
-    console.error("Error creating appointment:", e);
-    res.json({ message: "Error booking appointment", error: e });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    res.status(500).json({ message: "Token verification error", error: error });
   }
 });
+
 
 
 app.listen(8000, () => {

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Grid, Typography, Select, MenuItem } from '@mui/material';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
 const BookAppointment = ({ userId }) => {
   const [date, setDate] = useState(new Date().toISOString().substr(0, 10));
   const [time, setTime] = useState('');
-  const [therapist, setTherapist] = useState('');
-
+  const [therapist, setTherapist]
+   = useState('');
+  const Location = useLocation();
   const therapists = ['Therapist 1', 'Therapist 2', 'Therapist 3']; // Replace with actual data
 
   const handleBookAppointment = async () => {
     try {
       const response = await axios.post('http://localhost:8000/BookAppointment', {
-        userId: userId,
         therapistId: 1, // Replace with actual therapist ID
         appointmentDate: date,
         appointmentTime: time,
