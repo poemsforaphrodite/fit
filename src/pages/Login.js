@@ -9,7 +9,7 @@ function Login() {
 
   async function submit(e) {
     e.preventDefault();
-
+  
     try {
       await axios
         .post("http://localhost:8000/login", {
@@ -17,14 +17,14 @@ function Login() {
           password,
         })
         .then((res) => {
-          if (res.data === "Logged in successfully") {
+          if (res.data.message === "Logged in successfully") {
             navigate("/Dashboard", { state: { id: email } });
-          } else if (res.data === "Incorrect password") {
+          } else if (res.data.message === "Incorrect password") {
             alert("Incorrect password");
-          } else if (res.data === "Email does not exist") {
+          } else if (res.data.message === "Email does not exist") {
             alert("Email does not exist");
           } else {
-            alert("error");
+            alert(res.data.message);
           }
         })
         .catch((err) => {
@@ -35,6 +35,7 @@ function Login() {
       console.log(err);
     }
   }
+  
 
   return (
     <div

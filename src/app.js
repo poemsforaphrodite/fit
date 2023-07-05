@@ -1,8 +1,8 @@
 const express = require("express");
 require("dotenv").config();
-const  User = require("./mongo"); // Updated import
+const User = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const app = express();
 app.use(express.json());
@@ -16,20 +16,25 @@ app.get("/", cors(), (req, res) => {
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
   try {
+    //TODO: do sommething about the process env
     const user = await User.findOne({ email: email });
     if (user) {
       if (user.password === password) {
-        const token = jwt.sign({ email: email }, "secret-key");
-        //send token to
-        res.json("Logged in successfully");
+        //const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
+        res.status(200).json({
+          message: "Logged in successfully",
+          // token: token,
+        });
       } else {
-        res.json("Incorrect password");
+        res.status(401).json({ message: "Incorrect password" });
       }
     } else {
-      res.json("Email does not exist");
+      res.status(404).json({ message: "Email does not exist" });
     }
   } catch (e) {
-    res.json(e);
+    console.error(e.message);
+    console.error(e.stack);
+    res.status(500).json({ message: "An error occurred" });
   }
 });
 
@@ -76,50 +81,37 @@ app.post("/BookAppointment", cors(), async (req, res) => {
 
   try {
     // Verify the token
-    jwt.verify(token, "secret-key", async (err, decoded) => {
-      if (err) {
-        res.status(401).json({ message: "Invalid token" });
-        return;
-      }
+    // jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    //   if (!token) {
+    //     console.log("Token is not provided in the request body");
+    //     res.status(400).json({ message: "Token is required" });
+    //     return;
+    //   }
+    //   if (err) {
+    //     res.status(401).json({ message: "Invalid token" });
+    //     console.error(err.message);
+    //     console.error(err.stack);
+    //     return;
+    //   }
 
-      const email = decoded.email;
+    // const email = decoded.email;
 
-      try {
-        const user = await User.findOne({ email: email });
-        if (!user) {
-          res.status(404).json({ message: "User not found" });
-          return;
-        }
-        user.therapistId = therapistId;
-        user.appointmentDate = appointmentDate;
-        user.appointmentTime = appointmentTime;
-        user.status = "pending";
-
-        try {
-          const updatedUser = await user.save();
-          res.json({
-            message: "Appointment booked successfully",
-            user: updatedUser,
-          });
-        } catch (saveError) {
-          console.error("Error saving appointment:", saveError);
-          res.status(500).json({
-            message: "Error saving appointment",
-            error: saveError.message,
-          });
-        }
-      } catch (e) {
-        console.error("Error creating appointment:", e);
-        res.json({ message: "Error booking appointment", error: e });
-      }
-    });
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    res.status(500).json({ message: "Token verification error", error: error });
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    user.therapistId = therapistId;
+    user.appointmentDate = appointmentDate;
+    user.appointmentTime = appointmentTime;
+    user.status = "pending";
+    // ...
+  } catch (e) {
+    console.error(e.message);
+    console.error(e.stack);
+    res.status(500).json({ message: "An error occurred" });
   }
 });
-
-
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
