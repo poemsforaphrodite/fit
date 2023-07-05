@@ -9,7 +9,7 @@ function Login() {
 
   async function submit(e) {
     e.preventDefault();
-  
+    //FIXME: The user should be redirected to the dashboard page if the user is logging in for the first time and to the home page if the user is logging in for the second time
     try {
       await axios
         .post("http://localhost:8000/login", {

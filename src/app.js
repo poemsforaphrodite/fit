@@ -116,6 +116,39 @@ app.post("/BookAppointment", cors(), async (req, res) => {
     res.status(500).json({ message: "An error occurred" });
   }
 });
+app.get('/workout-plan/:userId', async (req, res) => {
+  try {
+      const user = await User.findById(req.params.userId);
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+
+      // Generate a workout plan based on the user's data
+      const workoutPlan = generateWorkoutPlan(user);
+
+      res.send(workoutPlan);
+  } catch (err) {
+      res.status(500).send('Server error');
+  }
+});
+
+function generateWorkoutPlan(user) {
+  // This is where you would generate a workout plan based on the user's data.
+  // For now, this function just returns a placeholder workout plan.
+  return {
+      Monday: 'Run 5km',
+      Tuesday: 'Bike 10km',
+      Wednesday: 'Rest',
+      Thursday: 'Swim 1km',
+      Friday: 'Lift weights',
+      Saturday: 'Yoga',
+      Sunday: 'Rest',
+  };
+}
+
+
+
+
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");

@@ -20,7 +20,7 @@ const App = () => {
 
   return (
     <Box width="400px" sx={{ width: { xl: "1488px" } }} m="auto">
-      {location.pathname !== "/login" && location.pathname !== "/signup" && (
+      {location.pathname !== "/Login" && location.pathname !== "/signup" && (
         <Navbar />
       )}
       <Routes>
@@ -34,7 +34,7 @@ const App = () => {
         <Route path="/Signup" element={<Signup />} />
         <Route path="/BookAppointment" element={<BookAppointment />} />
       </Routes>
-      {location.pathname !== "/login" && location.pathname !== "/signup" && (
+      {location.pathname !== "/Login" && location.pathname !== "/signup" && (
         <Footer />
       )}
     </Box>

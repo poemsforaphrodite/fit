@@ -18,7 +18,6 @@ const Navbar = () => (
       style={{ width: '100%' }}
     >
       <Stack direction="row" gap="40px">
-        <Link to="/" style={{ textDecoration: 'none', color: '#3A1212', borderBottom: '3px solid #FF2625' }}>Home</Link>
         <a href="/Services" style={{ textDecoration: 'none', color: '#3A1212' }}>Services</a>
         <a href="/About" style={{ textDecoration: 'none', color: '#3A1212' }}>About</a>
         <a href="/Contact" style={{ textDecoration: 'none', color: '#3A1212' }}>Contact</a>
