@@ -1,7 +1,7 @@
 const express = require("express");
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
 const User = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -41,6 +41,15 @@ app.post("/login", cors(), async (req, res) => {
 
         // Generate the URL for the BookAppointment component
         const url = generateUrl(token, user._id);
+        // Store the token value using your preferred method (e.g., localStorage, cookies, etc.)
+          //TODO:implement local storage
+          // localStorage.setItem("token", token);
+
+        // // Store the URL in local storage
+        // localStorage.setItem("bookAppointmentUrl", url);
+
+        // // Redirect the user to the BookAppointment component using the received URL
+        // history.push(url);
 
         res.status(200).json({
           message: "Logged in successfully",
@@ -113,24 +122,24 @@ const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ message: 'No token provided' });
+    return res.status(401).json({ message: "No token provided" });
   }
 
-  const parts = authHeader.split(' ');
+  const parts = authHeader.split(" ");
 
   if (parts.length !== 2) {
-    return res.status(401).json({ message: 'Token error' });
+    return res.status(401).json({ message: "Token error" });
   }
 
   const [scheme, token] = parts;
 
   if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ message: 'Invalid token format' });
+    return res.status(401).json({ message: "Invalid token format" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ message: "Invalid token" });
     }
 
     req.userEmail = decoded.email;
