@@ -18,6 +18,8 @@ module.exports = {
     'react',
   ],
   rules: {
+    // Add the following rule to allow both single and double quotes in strings
+    'quotes': [2, 'single', { 'allowTemplateLiterals': true, 'avoidEscape': true }],
 
     'react/function-component-definition': 0,
     'import/extensions': 0,

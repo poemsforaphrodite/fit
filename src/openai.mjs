@@ -16,5 +16,4 @@ async function getResponse() {
 
     console.log(completion.data.choices[0].message.content);
 }
-
 getResponse();

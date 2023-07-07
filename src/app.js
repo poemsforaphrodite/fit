@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get("/", cors(), (req, res) => {
-  res.send("Hello Worldsssssss");
+  res.send("Hello Wossrldsssssss");
 });
 
 app.post("/login", cors(), async (req, res) => {
