@@ -9,6 +9,7 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB..."));
 
   const newSchema = new mongoose.Schema({
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true }, // Add this line
     email: { type: String, required: true },
     password: { type: String, required: true },
     age: { type: Number },
@@ -24,4 +25,3 @@ mongoose
   const User = mongoose.model("User", newSchema);
   
   module.exports = User;
-  

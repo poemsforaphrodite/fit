@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 
@@ -17,15 +17,21 @@ import BookAppointment from "./pages/BookAppointment";
 
 const App = () => {
   const location = useLocation();
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState(null);
+  const handleLogin = (uid, authToken) => {
+    setUserId(uid);
+    setToken(authToken);
+  };
 
   return (
     <Box width="400px" sx={{ width: { xl: "1488px" } }} m="auto">
       {location.pathname !== "/Login" && location.pathname !== "/signup" && (
-        <Navbar />
+        <Navbar userId={userId} token={token} />
       )}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/Login" element={<Login />} />
+        <Route path="/Login" element={<Login onLogin={handleLogin} />} />
         <Route path="/About" element={<About />} />
         <Route path="/Services" element={<Services />} />
         <Route path="/Contact" element={<Contact />} />

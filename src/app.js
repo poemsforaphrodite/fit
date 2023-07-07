@@ -1,5 +1,7 @@
 const express = require("express");
-require("dotenv").config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
 const User = require("./mongo"); // Updated import
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -15,15 +17,35 @@ app.get("/", cors(), (req, res) => {
 
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
+  const generateUrl = (token, userId) => {
+    let url = "http://localhost:3000/bookappointment";
+    if (token) {
+      url += `?token=${token}`;
+    }
+    if (userId) {
+      url += token ? `&userId=${userId}` : `?userId=${userId}`;
+    }
+    console.log(url);
+    return url;
+  };
   try {
-    //TODO: do sommething about the process env
     const user = await User.findOne({ email: email });
     if (user) {
       if (user.password === password) {
-        //const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
+        const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
+          expiresIn: "3h", // Optional: set an expiration time for the token
+        });
+
+        // Log the generated token
+        console.log(`Token generated successfully: ${token}`);
+
+        // Generate the URL for the BookAppointment component
+        const url = generateUrl(token, user._id);
+
         res.status(200).json({
           message: "Logged in successfully",
-          // token: token,
+          token: token,
+          url: url, // Return the generated URL
         });
       } else {
         res.status(401).json({ message: "Incorrect password" });
@@ -58,7 +80,16 @@ app.post("/signup", cors(), async (req, res) => {
 });
 
 app.post("/update", cors(), async (req, res) => {
-  const { email, sex, age, height, weight, fitnessGoals, bodyFat, desiredBodyFat } = req.body;
+  const {
+    email,
+    sex,
+    age,
+    height,
+    weight,
+    fitnessGoals,
+    bodyFat,
+    desiredBodyFat,
+  } = req.body;
   try {
     const user = await User.findOne({ email: email });
     if (user) {
@@ -69,7 +100,7 @@ app.post("/update", cors(), async (req, res) => {
       user.fitnessGoals = fitnessGoals;
       user.bodyFat = bodyFat;
       user.desiredBodyFat = desiredBodyFat;
- await user.save();
+      await user.save();
       res.json("User updated successfully");
     } else {
       res.json("User not found");
@@ -78,29 +109,41 @@ app.post("/update", cors(), async (req, res) => {
     res.json(e);
   }
 });
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-app.post("/BookAppointment", cors(), async (req, res) => {
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  const parts = authHeader.split(' ');
+
+  if (parts.length !== 2) {
+    return res.status(401).json({ message: 'Token error' });
+  }
+
+  const [scheme, token] = parts;
+
+  if (!/^Bearer$/i.test(scheme)) {
+    return res.status(401).json({ message: 'Invalid token format' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    req.userEmail = decoded.email;
+    next();
+  });
+};
+
+app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
   console.log("Request body:", req.body);
-  const { token, therapistId, appointmentDate, appointmentTime } = req.body;
+  const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
 
   try {
-    // Verify the token
-    // jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-    //   if (!token) {
-    //     console.log("Token is not provided in the request body");
-    //     res.status(400).json({ message: "Token is required" });
-    //     return;
-    //   }
-    //   if (err) {
-    //     res.status(401).json({ message: "Invalid token" });
-    //     console.error(err.message);
-    //     console.error(err.stack);
-    //     return;
-    //   }
-
-    // const email = decoded.email;
-
-    const user = await User.findOne({ email: email });
+    const user = await User.findById(userId); // Find user using userId
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
@@ -109,26 +152,29 @@ app.post("/BookAppointment", cors(), async (req, res) => {
     user.appointmentDate = appointmentDate;
     user.appointmentTime = appointmentTime;
     user.status = "pending";
-    // ...
+    await user.save();
+
+    res.status(200).json({ message: "Appointment booked successfully" });
   } catch (e) {
     console.error(e.message);
     console.error(e.stack);
     res.status(500).json({ message: "An error occurred" });
   }
 });
-app.get('/workout-plan/:userId', async (req, res) => {
+
+app.get("/workout-plan/:userId", async (req, res) => {
   try {
-      const user = await User.findById(req.params.userId);
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
 
-      // Generate a workout plan based on the user's data
-      const workoutPlan = generateWorkoutPlan(user);
+    // Generate a workout plan based on the user's data
+    const workoutPlan = generateWorkoutPlan(user);
 
-      res.send(workoutPlan);
+    res.send(workoutPlan);
   } catch (err) {
-      res.status(500).send('Server error');
+    res.status(500).send("Server error");
   }
 });
 
@@ -136,19 +182,15 @@ function generateWorkoutPlan(user) {
   // This is where you would generate a workout plan based on the user's data.
   // For now, this function just returns a placeholder workout plan.
   return {
-      Monday: 'Run 5km',
-      Tuesday: 'Bike 10km',
-      Wednesday: 'Rest',
-      Thursday: 'Swim 1km',
-      Friday: 'Lift weights',
-      Saturday: 'Yoga',
-      Sunday: 'Rest',
+    Monday: "Run 5km",
+    Tuesday: "Bike 10km",
+    Wednesday: "Rest",
+    Thursday: "Swim 1km",
+    Friday: "Lift weights",
+    Saturday: "Yoga",
+    Sunday: "Rest",
   };
 }
-
-
-
-
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
