@@ -43,6 +43,7 @@ app.post("/login", cors(), async (req, res) => {
         const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
           expiresIn: "3h", // Optional: set an expiration time for the token
         });
+        
 
         // Log the generated token
         console.log(`Token generated successfully: ${token}`);
