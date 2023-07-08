@@ -20,6 +20,7 @@ mongoose
     appointmentDate: { type: Date }, // Add this line
     appointmentTime: { type: String }, // Add this line
     status: { type: String, default: "pending" },
+    workout: { type: String },
   });
   
   const User = mongoose.model("User", newSchema);
