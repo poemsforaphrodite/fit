@@ -17,7 +17,7 @@ function Login() {
           password,
         })
         .then((res) => {
-          if (res.data.message === "Logged in successfully") {
+          if (res.data.message === "Logged in successfully") {    
             navigate("/Dashboard", { state: { id: email } });
           } else if (res.data.message === "Incorrect password") {
             alert("Incorrect password");
