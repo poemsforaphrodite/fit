@@ -6,7 +6,7 @@ const configuration = new Configuration({
   apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
-
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAA
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
 const User = require("./mongo"); // Updated import
