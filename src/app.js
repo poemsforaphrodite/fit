@@ -1,7 +1,7 @@
 const express = require("express");
 const path = require("path");
 const { Configuration, OpenAIApi } = require("openai");
-
+const axios = require("axios");
 const configuration = new Configuration({
   apiKey: "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",
 });
@@ -166,19 +166,92 @@ app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
       res.status(404).json({ message: "User not found" });
       return;
     }
+
+    // Get Zoom access token
+    const zoomAccessToken = await getZoomAccessToken(process.env.ZOOM_CLIENT_ID, process.env.ZOOM_CLIENT_SECRET);
+
+    if (!zoomAccessToken) {
+      console.log("meow1")
+      res.status(500).json({ message: "Error getting Zoom access token" });
+      return;
+    }
+    
+    // Create Zoom meeting
+    const zoomMeeting = await createZoomMeeting(process.env.ZOOM_USER_ID, zoomAccessToken, appointmentDate, appointmentTime);
+    
+    if (!zoomMeeting) {
+      console.log("meow2")
+      res.status(500).json({ message: "Error creating Zoom meeting" });
+      return;
+    }
+
     user.therapistId = therapistId;
     user.appointmentDate = appointmentDate;
     user.appointmentTime = appointmentTime;
+    user.zoomMeetingId = zoomMeeting.id; // Save Zoom meeting ID
+    user.zoomMeetingJoinUrl = zoomMeeting.join_url; // Save Zoom meeting join URL
     user.status = "pending";
     await user.save();
 
-    res.status(200).json({ message: "Appointment booked successfully" });
+    res.status(200).json({
+      message: "Appointment booked successfully",
+      zoomMeeting: zoomMeeting, // Return the Zoom meeting details
+    });
   } catch (e) {
     console.error(e.message);
     console.error(e.stack);
     res.status(500).json({ message: "An error occurred" });
   }
 });
+async function getZoomAccessToken(clientId, clientSecret) {
+  const zoomApiUrl = "https://zoom.us/oauth/token";
+  const zoomApiAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const params = new URLSearchParams();
+  params.append("grant_type", "client_credentials");
+
+  try {
+    const response = await axios.post(zoomApiUrl, params, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": `Basic ${zoomApiAuth}`,
+      },
+    });
+    console.log("Access token:", response.data.access_token);
+    console.log("Response data:", response.data); 
+    return response.data.access_token;
+  } catch (error) {
+    console.error("Error getting Zoom access token:", error);
+    console.error("Request:", error.request);
+    console.error("Response:", error.response);
+    return null;
+  }
+}
+async function createZoomMeeting(userId, accessToken, appointmentDate, appointmentTime) {
+  const zoomApiUrl = `https://api.zoom.us/v2/users/${userId}/meetings`;
+  console.log("Access token in createZoomMeeting:", accessToken);
+  console.log("User ID in createZoomMeeting:", userId); // Add this line
+  const meetingPayload = {
+    topic: "Appointment Meeting",
+    type: 2,
+    start_time: `${appointmentDate}T${appointmentTime}`,
+    timezone: "UTC", // Set the appropriate timezone
+    duration: 60, // Set the desired meeting duration in minutes
+  };
+
+  try {
+    const response = await axios.post(zoomApiUrl, meetingPayload, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating Zoom meeting:", error);
+    return null;
+  }
+}
 
 async function generateWorkoutPlanWithOpenAI(user) {
   console.log("hi");
@@ -214,6 +287,7 @@ async function generateWorkoutPlanWithOpenAI(user) {
     return "Error generating workout plan. Please try again later.";
   }
 }
+
 // Workout plan route
 app.get("/workout-plan/:userId", async (req, res) => {
   console.log("Request params:", req.params);
@@ -242,3 +316,4 @@ app.get("/workout-plan/:userId", async (req, res) => {
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
+

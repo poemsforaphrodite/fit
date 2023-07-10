@@ -4,7 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
-
+.env
 # testing
 /coverage
 
@@ -21,3 +21,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/ curl -X POST "https://api.zoom.us/v2/users/64a55bf0a888eb7a3a398a76/meetings" \
+//   -H "Authorization: Bearer eyJzdiI6IjAwMDAwMSIsImFsZyI6IkhTNTEyIiwidiI6IjIuMCIsImtpZCI6IjNkMDBhNzRmLWRiMjMtNGRlMS1iNWY4LTE3ZWQ3NTYwZmE3ZCJ9.eyJhdWQiOiJodHRwczovL29hdXRoLnpvb20udXMiLCJ1aWQiOiJfeUlaNkZhU1RQYWpwRlJhTmhlTWpnIiwidmVyIjo5LCJhdWlkIjoiNmMzMjliYTJkZmJkY2QzNWRmZjU0NzcyNjFhNzRkMTIiLCJuYmYiOjE2ODkwMjk2NzgsImlzcyI6InptOmNpZDp1dVhDeFFfUURHczRocXdCbEFRTXciLCJnbm8iOjAsImV4cCI6MTY4OTAzMzI3OCwidHlwZSI6MiwiaWF0IjoxNjg5MDI5Njc4fQ.0pXJZUm2Xeg4KWhBCpO2tFzeBsS85l1V7dIBI501Jdg8m2JxJahm9vqxs92EouTlbKVsJo03QToiNst4xsoiPg" \
+//   -H "Content-Type: application/json" \
+//   -d '{
+//     "topic": "Test Meeting",
+//     "type": 2,
+//     "start_time": "2023-07-11T10:00:00",
+//     "duration": 60,
+//     "timezone": "America/Los_Angeles"
+//   }'
+
+//   https://zoom.us/oauth/authorize?response_type=code&client_id=uuXCxQ_QDGs4hqwBlAQMw&redirect_uri=http://localhost:3000/home
