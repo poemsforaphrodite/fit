@@ -54,7 +54,7 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#FFFEC4',
+        backgroundColor: '#FF9B9B', // Changed the background color
       }}
     >
       <h1 style={{ color: '#0093f7' }}>Hello, {location.state.id}</h1>
