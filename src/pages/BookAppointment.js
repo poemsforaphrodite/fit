@@ -28,7 +28,7 @@ const BookAppointment = () => {
   const [date, setDate] = useState(formattedDate);
   const [time, setTime] = useState(formattedTime);
   const [therapist, setTherapist] = useState("");
-
+  //TODO:add current appointments
   // List of therapists
   const therapists = ["Therapist A", "Therapist B", "Therapist C"];
 
@@ -40,15 +40,15 @@ const BookAppointment = () => {
       console.log("Token from query param:", getQueryParam("token"));
       console.log("UserId from query param:", getQueryParam("userId"));
     };
-    
+
     fetchData();
   }, [location]);
   const handleBookAppointment = async () => {
-    console.log("handleBookAppointment called");
-    console.log("Token being sent:", token); // Log the token being sent
-    console.log("UserId being sent:", userId); // Log the userId being sent
-    console.log("Date being sent:", date);
-    console.log("Time being sent:", time);
+    // console.log("handleBookAppointment called");
+    // console.log("Token being sent:", token); // Log the token being sent
+    // console.log("UserId being sent:", userId); // Log the userId being sent
+    // console.log("Date being sent:", date);
+    // console.log("Time being sent:", time);
 
     try {
       const response = await axios.post(
