@@ -1,4 +1,4 @@
-import React ,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Stack } from "@mui/material";
 
@@ -12,7 +12,7 @@ const Navbar = ({ userId, token }) => {
     setCurrentUserId(userId);
     setCurrentUserToken(token);
   }, [userId, token]);
-
+  const bookAppointmentUrl = window.localStorage.getItem("bookAppointmentUrl");
   const linkStyle = {
     textDecoration: "none",
     color: "#FFFFFF",
@@ -22,7 +22,7 @@ const Navbar = ({ userId, token }) => {
     },
   };
 
-  return(
+  return (
     <Stack
       direction="row"
       justifyContent="space-around"
@@ -43,12 +43,22 @@ const Navbar = ({ userId, token }) => {
       </Link>
       <Stack>
         <Stack direction="row" gap="40px">
-          <Link to="/Services" style={linkStyle}>Services</Link>
-          <Link to="/About" style={linkStyle}>About</Link>
-          <Link to="/Contact" style={linkStyle}>Contact</Link>
-          <Link to="/FAQ" style={linkStyle}>FAQ</Link>
-          <Link to="/Dashboard" style={linkStyle}>Dashboard</Link>
-          <Link to={`/bookappointment?token=${currentUserToken}&userId=${currentUserId}`} style={linkStyle}>
+          <Link to="/Services" style={linkStyle}>
+            Services
+          </Link>
+          <Link to="/About" style={linkStyle}>
+            About
+          </Link>
+          <Link to="/Contact" style={linkStyle}>
+            Contact
+          </Link>
+          <Link to="/FAQ" style={linkStyle}>
+            FAQ
+          </Link>
+          <Link to="/Dashboard" style={linkStyle}>
+            Dashboard
+          </Link>
+          <Link to={bookAppointmentUrl} style={linkStyle}>
             Book Appointment
           </Link>
         </Stack>
@@ -70,7 +80,7 @@ const Navbar = ({ userId, token }) => {
         Login
       </a>
     </Stack>
-  )
+  );
 };
 
 export default Navbar;

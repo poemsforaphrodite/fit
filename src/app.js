@@ -3,10 +3,9 @@ const path = require("path");
 const { Configuration, OpenAIApi } = require("openai");
 const axios = require("axios");
 const configuration = new Configuration({
-  apiKey: "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",
+  apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAA
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
 const User = require("./mongo"); // Updated import
@@ -25,7 +24,7 @@ app.get("/", cors(), (req, res) => {
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
   const generateUrl = (token, userId) => {
-    let url = "http://localhost:3000/bookappointment";
+    let url = "/bookappointment";
     if (token) {
       url += `?token=${token}`;
     }
@@ -34,22 +33,21 @@ app.post("/login", cors(), async (req, res) => {
     }
     console.log(url);
     console.log(`http://localhost:3000/workout-plan/${userId}`);
+    // Inside your login function after a successful login response
     return url;
   };
   try {
     const user = await User.findOne({ email: email });
     if (user) {
       if (user.password === password) {
-        const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
-          expiresIn: "3h", // Optional: set an expiration time for the token
-        });
-        
+        const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
         // Log the generated token
         console.log(`Token generated successfully: ${token}`);
 
         // Generate the URL for the BookAppointment component
         const url = generateUrl(token, user._id);
+        // localStorage.setItem("bookAppointmentUrl", response.data.url);
         // Store the token value using your preferred method (e.g., localStorage, cookies, etc.)
         //TODO:implement local storage
         // localStorage.setItem("token", token);
@@ -168,19 +166,31 @@ app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
     }
 
     // Get Zoom access token
-    const zoomAccessToken = await getZoomAccessToken(process.env.ZOOM_CLIENT_ID, process.env.ZOOM_CLIENT_SECRET);
+    //console.log("process.env.ZOOM_CLIENT_ID:", process.env.ZOOM_CLIENT_ID);
+    const zoomAccessToken = await getZoomAccessToken(
+      process.env.ZOOM_CLIENT_ID,
+      process.env.ZOOM_CLIENT_SECRET,
+      process.env.ZOOM_USER_ID
+    );
+    console.log("zoomAccessToken:", zoomAccessToken); // Add this line
 
     if (!zoomAccessToken) {
-      console.log("meow1")
+      console.log("meow1");
       res.status(500).json({ message: "Error getting Zoom access token" });
       return;
     }
-    
+
     // Create Zoom meeting
-    const zoomMeeting = await createZoomMeeting(process.env.ZOOM_USER_ID, zoomAccessToken, appointmentDate, appointmentTime);
-    
+    const zoomMeeting = await createZoomMeeting(
+      process.env.ZOOM_USER_ID,
+      zoomAccessToken,
+      appointmentDate,
+      appointmentTime
+    );
+    console.log("zoomMeeting:", zoomMeeting); // Add this line
+
     if (!zoomMeeting) {
-      console.log("meow2")
+      console.log("meow2");
       res.status(500).json({ message: "Error creating Zoom meeting" });
       return;
     }
@@ -203,21 +213,25 @@ app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
     res.status(500).json({ message: "An error occurred" });
   }
 });
-async function getZoomAccessToken(clientId, clientSecret) {
+
+async function getZoomAccessToken(clientId, clientSecret, accountId) {
   const zoomApiUrl = "https://zoom.us/oauth/token";
-  const zoomApiAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const zoomApiAuth = Buffer.from(`${clientId}:${clientSecret}`).toString(
+    "base64"
+  );
   const params = new URLSearchParams();
-  params.append("grant_type", "client_credentials");
+  params.append("grant_type", "account_credentials");
+  params.append("account_id", accountId);
 
   try {
     const response = await axios.post(zoomApiUrl, params, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": `Basic ${zoomApiAuth}`,
+        Authorization: `Basic ${zoomApiAuth}`,
       },
     });
     console.log("Access token:", response.data.access_token);
-    console.log("Response data:", response.data); 
+    console.log("Response data:", response.data);
     return response.data.access_token;
   } catch (error) {
     console.error("Error getting Zoom access token:", error);
@@ -226,29 +240,51 @@ async function getZoomAccessToken(clientId, clientSecret) {
     return null;
   }
 }
-async function createZoomMeeting(userId, accessToken, appointmentDate, appointmentTime) {
-  const zoomApiUrl = `https://api.zoom.us/v2/users/${userId}/meetings`;
+async function createZoomMeeting(
+  userId,
+  accessToken,
+  appointmentDate,
+  appointmentTime
+) {
+  const zoomApiUrl = `https://api.zoom.us/v2/users/me/meetings`;
+  console.log("zoomApiUrl:", zoomApiUrl); // Add this line
   console.log("Access token in createZoomMeeting:", accessToken);
-  console.log("User ID in createZoomMeeting:", userId); // Add this line
+  console.log("User ID in createZoomMeeting:", userId);
+
   const meetingPayload = {
-    topic: "Appointment Meeting",
+    agenda: "Therapy",
+    default_password: false,
+    duration: 60,
+    password: "123456",
+    start_time: `${appointmentDate}T${appointmentTime}:00`,
+    template_id: "Dv4YdINdTk+Z5RToadh5ug==",
+    timezone: "India/Delhi",
+    topic: "Therapy",
+    tracking_fields: [
+      {
+        field: "field1",
+        value: "value1",
+      },
+    ],
     type: 2,
-    start_time: `${appointmentDate}T${appointmentTime}`,
-    timezone: "UTC", // Set the appropriate timezone
-    duration: 60, // Set the desired meeting duration in minutes
   };
+  console.log("meetingPayload:", meetingPayload); // Add this line
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}}`,
+  };
+  console.log("headers:", headers); // Add this line
 
   try {
     const response = await axios.post(zoomApiUrl, meetingPayload, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
+      headers: headers,
     });
 
     return response.data;
   } catch (error) {
     console.error("Error creating Zoom meeting:", error);
+    console.error("Error response:", error.response);
     return null;
   }
 }
@@ -316,4 +352,3 @@ app.get("/workout-plan/:userId", async (req, res) => {
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
-
