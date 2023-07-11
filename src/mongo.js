@@ -20,7 +20,7 @@ const newSchema = new mongoose.Schema({
   appointmentDate: { type: Date }, // Add this line
   appointmentTime: { type: String }, // Add this line
   status: { type: String, default: "pending" },
-  workout: { type: String },
+  workoutPlan: { type: String },
   zoomMeetingId: { type: String },
   zoomMeetingJoinUrl: { type: String },
 });
