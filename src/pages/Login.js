@@ -1,3 +1,4 @@
+// src/pages/Login.js
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -86,7 +87,7 @@ function Login() {
             margin: "10px 0",
             padding: "10px",
             width: "130%",
-            backgroundColor: "#4a4a4a",
+            backgroundColor: "#FFD6A5",
             color: "white",
             border: "none",
             cursor: "pointer",
@@ -96,7 +97,7 @@ function Login() {
       <br />
       <Link
         to="/signup"
-        style={{ textAlign: "center", display: "block", color: "#4a4a4a" }}
+        style={{ textAlign: "center", display: "block", color: "#FFD6A5" }}
       >
         Signup
       </Link>

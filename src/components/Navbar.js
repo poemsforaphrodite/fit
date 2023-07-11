@@ -1,3 +1,4 @@
+// src/components/Navbar.js
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Stack } from "@mui/material";
@@ -29,7 +30,7 @@ const Navbar = ({ userId, token }) => {
     justifyContent: "space-around",
     gap: { sm: "123px", xs: "40px" },
     mt: { sm: "32px", xs: "20px" },
-    backgroundColor: "#f1b725",
+    backgroundColor: "#FF9B9B",
     padding: "20px",
   };
 
@@ -42,7 +43,7 @@ const Navbar = ({ userId, token }) => {
   const loginButtonStyle = {
     textDecoration: "none",
     color: "#FFFFFF",
-    backgroundColor: "#FF2625",
+    backgroundColor: "#FFD6A5",
     padding: "10px 20px",
     borderRadius: "5px",
     transition: "0.3s",

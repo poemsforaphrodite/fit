@@ -1,3 +1,4 @@
+// src/pages/Home.js
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 
@@ -10,7 +11,7 @@ const Home = () => {
   const [bodyPart, setBodyPart] = useState('all');
 
   return (
-    <Box sx={{ backgroundColor: 'pink' }}>
+    <Box sx={{ backgroundColor: '#FF9B9B' }}>
       <HeroBanner />
       <SearchExercises setExercises={setExercises} bodyPart={bodyPart} setBodyPart={setBodyPart} />
       <Exercises setExercises={setExercises} exercises={exercises} bodyPart={bodyPart} />

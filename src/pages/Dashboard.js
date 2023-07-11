@@ -1,3 +1,4 @@
+// src/pages/Dashboard.js
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -53,7 +54,7 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#f1b725',
+        backgroundColor: '#FFFEC4',
       }}
     >
       <h1 style={{ color: '#0093f7' }}>Hello, {location.state.id}</h1>
@@ -76,7 +77,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7',
+                backgroundColor: '#FF9B9B',
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -134,7 +135,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7',
+                backgroundColor: '#FF9B9B',
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -165,7 +166,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7',
+                backgroundColor: '#FF9B9B',
                 color: '#fff',
                 cursor: 'pointer',
               }}
