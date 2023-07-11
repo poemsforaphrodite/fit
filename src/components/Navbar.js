@@ -29,7 +29,7 @@ const Navbar = ({ userId, token }) => {
     justifyContent: "space-around",
     gap: { sm: "123px", xs: "40px" },
     mt: { sm: "32px", xs: "20px" },
-    backgroundColor: "#3A3212",
+    backgroundColor: "pink", // Updated color
     padding: "20px",
   };
 
