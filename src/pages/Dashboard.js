@@ -174,6 +174,11 @@ const Dashboard = () => {
             </button>
           </>
         )}
+        {step === 1 && fitnessGoals && (
+          <div style={{ marginTop: '10px', color: '#0093f7' }}>
+            Selected Fitness Goal: {fitnessGoals}
+          </div>
+        )}
       </form>
     </div>
   );
