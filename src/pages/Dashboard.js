@@ -30,17 +30,17 @@ const Dashboard = () => {
       desiredBodyFat,
     };
     fetch('http://localhost:8000/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(user),
-        })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch((error) => {
+        console.error('Error:', error);
+      });
 
     console.log(user);
   };
@@ -53,7 +53,7 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: 'pink',
       }}
     >
       <h1 style={{ color: '#007BFF' }}>Hello, {location.state.id}</h1>
