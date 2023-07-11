@@ -1,4 +1,4 @@
-//TODO: give the user to book another time if already booked
+// src/pages/BookAppointment.js
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -81,7 +81,7 @@ const BookAppointment = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#36393F",
+        backgroundColor: "#FF9B9B",
         minHeight: "100vh",
         padding: 2,
       }}
@@ -89,7 +89,7 @@ const BookAppointment = () => {
       <Container maxWidth="sm">
         <Box
           sx={{
-            backgroundColor: "#2F3136",
+            backgroundColor: "#36393F",
             borderRadius: 1,
             padding: 3,
           }}
@@ -177,9 +177,9 @@ const BookAppointment = () => {
                 onClick={handleBookAppointment}
                 fullWidth
                 sx={{
-                  backgroundColor: "#7289DA",
+                  backgroundColor: "#FFD6A5",
                   "&:hover": {
-                    backgroundColor: "#677BC4",
+                    backgroundColor: "#FF9B9B",
                   },
                 }}
               >
