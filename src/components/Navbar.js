@@ -20,7 +20,7 @@ const Navbar = ({ userId, token }) => {
     color: "#FFFFFF",
     transition: "0.3s",
     ":hover": {
-      color: "#0093f7", // Updated color
+      color: "#0093f7",
     },
   };
 
@@ -29,7 +29,7 @@ const Navbar = ({ userId, token }) => {
     justifyContent: "space-around",
     gap: { sm: "123px", xs: "40px" },
     mt: { sm: "32px", xs: "20px" },
-    backgroundColor: "#f1b725", // Updated color
+    backgroundColor: "#f1b725",
     padding: "20px",
   };
 
@@ -47,7 +47,7 @@ const Navbar = ({ userId, token }) => {
     borderRadius: "5px",
     transition: "0.3s",
     ":hover": {
-      backgroundColor: "#0093f7", // Updated color
+      backgroundColor: "#0093f7",
     },
   };
 

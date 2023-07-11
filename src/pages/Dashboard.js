@@ -53,7 +53,7 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#f1b725', // Updated color
+        backgroundColor: '#f1b725',
       }}
     >
       <h1 style={{ color: '#0093f7' }}>Hello, {location.state.id}</h1>
@@ -76,7 +76,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7', // Updated color
+                backgroundColor: '#0093f7',
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -134,7 +134,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7', // Updated color
+                backgroundColor: '#0093f7',
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -165,7 +165,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#0093f7', // Updated color
+                backgroundColor: '#0093f7',
                 color: '#fff',
                 cursor: 'pointer',
               }}
