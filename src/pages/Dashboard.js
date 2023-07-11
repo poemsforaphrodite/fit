@@ -53,10 +53,10 @@ const Dashboard = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: 'pink',
+        backgroundColor: '#f1b725', // Updated color
       }}
     >
-      <h1 style={{ color: '#007BFF' }}>Hello, {location.state.id}</h1>
+      <h1 style={{ color: '#0093f7' }}>Hello, {location.state.id}</h1>
       <form style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px' }}>
         {step === 1 && (
           <>
@@ -76,7 +76,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#007BFF',
+                backgroundColor: '#0093f7', // Updated color
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -134,7 +134,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#007BFF',
+                backgroundColor: '#0093f7', // Updated color
                 color: '#fff',
                 cursor: 'pointer',
               }}
@@ -165,7 +165,7 @@ const Dashboard = () => {
                 padding: '10px',
                 borderRadius: '5px',
                 border: '1px solid #ddd',
-                backgroundColor: '#007BFF',
+                backgroundColor: '#0093f7', // Updated color
                 color: '#fff',
                 cursor: 'pointer',
               }}
