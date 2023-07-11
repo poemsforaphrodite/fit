@@ -48,6 +48,7 @@ function Login() {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
+        backgroundColor: "#FF9B9B", // Changed the background color
       }}
     >
       <form
