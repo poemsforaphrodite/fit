@@ -12,7 +12,9 @@ const Navbar = ({ userId, token }) => {
     setCurrentUserId(userId);
     setCurrentUserToken(token);
   }, [userId, token]);
+
   const bookAppointmentUrl = window.localStorage.getItem("bookAppointmentUrl");
+
   const linkStyle = {
     textDecoration: "none",
     color: "#FFFFFF",
@@ -22,61 +24,59 @@ const Navbar = ({ userId, token }) => {
     },
   };
 
+  const navbarStyle = {
+    display: "flex",
+    justifyContent: "space-around",
+    gap: { sm: "123px", xs: "40px" },
+    mt: { sm: "32px", xs: "20px" },
+    backgroundColor: "#3A3212",
+    padding: "20px",
+  };
+
+  const logoStyle = {
+    width: "48px",
+    height: "48px",
+    margin: "0px 20px",
+  };
+
+  const loginButtonStyle = {
+    textDecoration: "none",
+    color: "#FFFFFF",
+    backgroundColor: "#FF2625",
+    padding: "10px 20px",
+    borderRadius: "5px",
+    transition: "0.3s",
+    ":hover": {
+      backgroundColor: "#FFD700",
+    },
+  };
+
   return (
-    <Stack
-      direction="row"
-      justifyContent="space-around"
-      sx={{
-        gap: { sm: "123px", xs: "40px" },
-        mt: { sm: "32px", xs: "20px" },
-        justifyContent: "none",
-        backgroundColor: "#3A3212",
-      }}
-      px="20px"
-    >
+    <Stack direction="row" sx={navbarStyle}>
       <Link to="/">
-        <img
-          src={Logo}
-          alt="logo"
-          style={{ width: "48px", height: "48px", margin: "0px 20px" }}
-        />
+        <img src={Logo} alt="logo" style={logoStyle} />
       </Link>
-      <Stack>
-        <Stack direction="row" gap="40px">
-          <Link to="/Services" style={linkStyle}>
-            Services
-          </Link>
-          <Link to="/About" style={linkStyle}>
-            About
-          </Link>
-          <Link to="/Contact" style={linkStyle}>
-            Contact
-          </Link>
-          <Link to="/FAQ" style={linkStyle}>
-            FAQ
-          </Link>
-          <Link to="/Dashboard" style={linkStyle}>
-            Dashboard
-          </Link>
-          <Link to={bookAppointmentUrl} style={linkStyle}>
-            Book Appointment
-          </Link>
-        </Stack>
+      <Stack direction="row" gap="40px">
+        <Link to="/Services" style={linkStyle}>
+          Services
+        </Link>
+        <Link to="/About" style={linkStyle}>
+          About
+        </Link>
+        <Link to="/Contact" style={linkStyle}>
+          Contact
+        </Link>
+        <Link to="/FAQ" style={linkStyle}>
+          FAQ
+        </Link>
+        <Link to="/Dashboard" style={linkStyle}>
+          Dashboard
+        </Link>
+        <Link to={bookAppointmentUrl} style={linkStyle}>
+          Book Appointment
+        </Link>
       </Stack>
-      <a
-        href="/Login"
-        style={{
-          textDecoration: "none",
-          color: "#FFFFFF",
-          backgroundColor: "#FF2625",
-          padding: "10px 20px",
-          borderRadius: "5px",
-          transition: "0.3s",
-          ":hover": {
-            backgroundColor: "#FFD700",
-          },
-        }}
-      >
+      <a href="/Login" style={loginButtonStyle}>
         Login
       </a>
     </Stack>
