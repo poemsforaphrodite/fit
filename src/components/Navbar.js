@@ -1,6 +1,8 @@
 // src/components/Navbar.js
+
+//FIXME:fix navbar
 import React, { useState, useEffect } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
 
 import Logo from "../assets/images/Logo.png";
@@ -9,6 +11,7 @@ const Navbar = ({ userId, token }) => {
   const [currentUserId, setCurrentUserId] = useState(userId);
   const [currentUserToken, setCurrentUserToken] = useState(token);
   const Navigate = useNavigate();
+  console.log(localStorage.getItem("dashboard"));
   useEffect(() => {
     setCurrentUserId(userId);
     setCurrentUserToken(token);
@@ -28,7 +31,7 @@ const Navbar = ({ userId, token }) => {
     justifyContent: "space-around",
     gap: { sm: "123px", xs: "40px" },
     mt: { sm: "32px", xs: "20px" },
-    backgroundColor: '#FF9B9B', // Changed the background color
+    backgroundColor: "#FF9B9B", // Changed the background color
     padding: "20px",
   };
 

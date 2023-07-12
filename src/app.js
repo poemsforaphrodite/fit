@@ -40,12 +40,22 @@ app.post("/login", cors(), async (req, res) => {
         const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
         // Log the generated token
-       // console.log(`Token generated successfully: ${token}`);
+        // console.log(`Token generated successfully: ${token}`);
 
         // Generate the URL for the Dashboard component
-        const url = generateUrl(token, user._id, 'dashboard');
-       console.log(generateUrl(token, user._id, 'BookAppointment'));
-       console.log(generateUrl(token, user._id, 'dashboard'));
+        const url = generateUrl(token, user._id, "dashboard");
+         console.log(`http://localhost:3000`+generateUrl(token, user._id, 'BookAppointment'));
+         console.log(generateUrl(token, user._id, 'dashboard'));
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            "dashboard",
+            generateUrl(token, user._id, "dashboard")
+          );
+          localStorage.setItem(
+            "BookAppointment",
+            generateUrl(token, user._id, "BookAppointment")
+          );
+        }
         res.status(200).json({
           message: "Logged in successfully",
           token: token,
