@@ -1,8 +1,10 @@
 // src/pages/Dashboard.js
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const Dashboard = () => {
+  const [token, setToken] = useState("");
+  const [userId, setUserId] = useState("");
   const [step, setStep] = useState(1);
   const [sex, setSex] = useState('');
   const [age, setAge] = useState('');
@@ -19,9 +21,24 @@ const Dashboard = () => {
     setStep(step + 1);
   };
 
+   // Function to parse query parameters
+   const getQueryParam = (name) => {
+    return new URLSearchParams(location.search).get(name);
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("useEffect triggered");
+      setToken(getQueryParam("token"));
+      setUserId(getQueryParam("userId"));
+      console.log("Token from query param:", getQueryParam("token"));
+      console.log("UserId from query param:", getQueryParam("userId"));
+    };
+
+    fetchData();
+  }, [location]);
   const handleOnSubmit = () => {
     const user = {
-      email: location.state.id,
+      userId, // Use userId instead of email
       sex,
       age,
       height: heightUnit === 'ft' ? height * 30.48 : height,
@@ -30,7 +47,7 @@ const Dashboard = () => {
       bodyFat,
       desiredBodyFat,
     };
-    fetch('http://localhost:8000/update', {
+    fetch(`http://localhost:8000/dashboard`, { 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,8 +60,9 @@ const Dashboard = () => {
         console.error('Error:', error);
       });
 
-    console.log(user);
+    //console.log(user);
   };
+
 
   return (
     <div
@@ -57,7 +75,7 @@ const Dashboard = () => {
         backgroundColor: '#FF9B9B', // Changed the background color
       }}
     >
-      <h1 style={{ color: '#0093f7' }}>Hello, {location.state.id}</h1>
+
       <form style={{ display: 'flex', flexDirection: 'column', width: '300px', gap: '10px' }}>
         {step === 1 && (
           <>

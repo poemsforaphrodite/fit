@@ -23,17 +23,14 @@ app.get("/", cors(), (req, res) => {
 
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
-  const generateUrl = (token, userId) => {
-    let url = "/bookappointment";
+  const generateUrl = (token, userId, path) => {
+    let url = `/${path}`;
     if (token) {
       url += `?token=${token}`;
     }
     if (userId) {
       url += token ? `&userId=${userId}` : `?userId=${userId}`;
     }
-    console.log(url);
-    console.log(`http://localhost:3000/workout-plan/${userId}`);
-    // Inside your login function after a successful login response
     return url;
   };
   try {
@@ -43,21 +40,12 @@ app.post("/login", cors(), async (req, res) => {
         const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
         // Log the generated token
-        console.log(`Token generated successfully: ${token}`);
+       // console.log(`Token generated successfully: ${token}`);
 
-        // Generate the URL for the BookAppointment component
-        const url = generateUrl(token, user._id);
-        // localStorage.setItem("bookAppointmentUrl", response.data.url);
-        // Store the token value using your preferred method (e.g., localStorage, cookies, etc.)
-        //TODO:implement local storage
-        // localStorage.setItem("token", token);
-
-        // // Store the URL in local storage
-        // localStorage.setItem("bookAppointmentUrl", url);
-
-        // // Redirect the user to the BookAppointment component using the received URL
-        // history.push(url);
-
+        // Generate the URL for the Dashboard component
+        const url = generateUrl(token, user._id, 'dashboard');
+       console.log(generateUrl(token, user._id, 'BookAppointment'));
+       console.log(generateUrl(token, user._id, 'dashboard'));
         res.status(200).json({
           message: "Logged in successfully",
           token: token,
@@ -95,9 +83,9 @@ app.post("/signup", cors(), async (req, res) => {
   }
 });
 
-app.post("/update", cors(), async (req, res) => {
+app.post("/dashboard/", cors(), async (req, res) => {
   const {
-    email,
+    userId,
     sex,
     age,
     height,
@@ -107,7 +95,7 @@ app.post("/update", cors(), async (req, res) => {
     desiredBodyFat,
   } = req.body;
   try {
-    const user = await User.findOne({ email: email });
+    const user = await User.findById(userId);
     if (user) {
       user.sex = sex;
       user.age = age;

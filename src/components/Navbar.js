@@ -1,6 +1,6 @@
 // src/components/Navbar.js
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
 
 import Logo from "../assets/images/Logo.png";
@@ -8,13 +8,11 @@ import Logo from "../assets/images/Logo.png";
 const Navbar = ({ userId, token }) => {
   const [currentUserId, setCurrentUserId] = useState(userId);
   const [currentUserToken, setCurrentUserToken] = useState(token);
-
+  const Navigate = useNavigate();
   useEffect(() => {
     setCurrentUserId(userId);
     setCurrentUserToken(token);
   }, [userId, token]);
-
-  const bookAppointmentUrl = window.localStorage.getItem("bookAppointmentUrl");
 
   const linkStyle = {
     textDecoration: "none",
@@ -73,7 +71,7 @@ const Navbar = ({ userId, token }) => {
         <Link to="/Dashboard" style={linkStyle}>
           Dashboard
         </Link>
-        <Link to={bookAppointmentUrl} style={linkStyle}>
+        <Link to="/BookAppointment" style={linkStyle}>
           Book Appointment
         </Link>
       </Stack>

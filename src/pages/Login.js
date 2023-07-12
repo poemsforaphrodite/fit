@@ -1,42 +1,33 @@
 // src/pages/Login.js
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Login() {
-  const navigate = useNavigate();
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const Navigate = useNavigate();
 
-  async function submit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    //FIXME: The user should be redirected to the dashboard page if the user is logging in for the first time and to the home page if the user is logging in for the second time
+
     try {
-      await axios
-        .post("http://localhost:8000/login", {
-          email,
-          password,
-        })
-        .then((res) => {
-          if (res.data.message === "Logged in successfully") {
-            localStorage.setItem("bookAppointmentUrl", res.data.url);
-            navigate("/Dashboard", { state: { id: email } });
-          } else if (res.data.message === "Incorrect password") {
-            alert("Incorrect password");
-          } else if (res.data.message === "Email does not exist") {
-            alert("Email does not exist");
-          } else {
-            alert(res.data.message);
-          }
-        })
-        .catch((err) => {
-          alert("An error occurred");
-          console.log(err);
-        });
-    } catch (err) {
-      console.log(err);
+      const response = await axios.post("http://localhost:8000/login", {
+        email,
+        password,
+      });
+
+      if (response.status === 200) {
+        // Store the token using your preferred method (e.g., localStorage, cookies, etc.)
+        localStorage.setItem("token", response.data.token);
+
+        // Redirect the user to the new URL received in the response
+        Navigate(response.data.url);
+      }
+    } catch (error) {
+      console.error(error);
     }
-  }
+  };
   
 
   return (
@@ -82,7 +73,7 @@ function Login() {
         />
         <input
           type="submit"
-          onClick={submit}
+          onClick={handleSubmit}
           value="Login"
           style={{
             margin: "10px 0",
