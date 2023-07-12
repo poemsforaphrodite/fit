@@ -59,7 +59,8 @@ app.post("/login", cors(), async (req, res) => {
         res.status(200).json({
           message: "Logged in successfully",
           token: token,
-          url: url, // Return the generated URL
+          url: url,
+          userId:user._id // Return the generated URL
         });
       } else {
         res.status(401).json({ message: "Incorrect password" });

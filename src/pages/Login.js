@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const Navigate = useNavigate();
@@ -18,8 +18,15 @@ function Login() {
       });
 
       if (response.status === 200) {
+        // Extract the userId and authToken from the response data
+        const userId = response.data.userId;
+        const authToken = response.data.token;
+        //console.log(userId, authToken);
+        // Pass the userId and authToken to the onLogin function
+        onLogin(userId, authToken);
+
         // Store the token using your preferred method (e.g., localStorage, cookies, etc.)
-        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("token", authToken);
 
         // Redirect the user to the new URL received in the response
         Navigate(response.data.url);
@@ -28,7 +35,6 @@ function Login() {
       console.error(error);
     }
   };
-  
 
   return (
     <div

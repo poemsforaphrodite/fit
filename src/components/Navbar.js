@@ -1,6 +1,5 @@
 // src/components/Navbar.js
 
-//FIXME:fix navbar
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Stack } from "@mui/material";
@@ -71,10 +70,10 @@ const Navbar = ({ userId, token }) => {
         <Link to="/FAQ" style={linkStyle}>
           FAQ
         </Link>
-        <Link to="/Dashboard" style={linkStyle}>
+        <Link to={`/Dashboard?token=${token}&userId=${userId}`} style={linkStyle}>
           Dashboard
         </Link>
-        <Link to="/BookAppointment" style={linkStyle}>
+        <Link to={`/BookAppointment?token=${token}&userId=${userId}`} style={linkStyle}>
           Book Appointment
         </Link>
       </Stack>
