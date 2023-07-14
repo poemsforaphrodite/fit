@@ -20,7 +20,6 @@ const Dashboard = () => {
   const [workoutPlan, setWorkoutPlan] = useState("");
   const [currentExercises, setCurrentExercises] = useState([]); // Added state for current exercises
   const location = useLocation();
- 
 
   // Function to parse query parameters
   const getQueryParam = (name) => {
@@ -50,7 +49,7 @@ const Dashboard = () => {
       bodyFat,
       desiredBodyFat,
     };
-  
+
     //...
     fetch(`http://localhost:8000/dashboard`, {
       //...
@@ -146,7 +145,7 @@ const Dashboard = () => {
             onChange={(e) => setHeight(e.target.value)}
             style={{
               padding: "10px",
-borderRadius: "5px",
+              borderRadius: "5px",
               border: "1px solid #ddd",
             }}
           />
@@ -228,9 +227,18 @@ borderRadius: "5px",
           Submit
         </button>
 
-        {fitnessGoals && (
-          <div style={{ marginTop: "10px", color: "#0093f7" }}>
-            workout: {fitnessGoals}
+        {workoutPlan && (
+          <div
+            style={{
+              marginTop: "20px",
+              color: "#0093f7",
+              border: "1px solid #ddd",
+              borderRadius: "5px",
+              padding: "10px",
+            }}
+          >
+            <h2>Generated Workout Plan</h2>
+            <pre>{workoutPlan}</pre>
           </div>
         )}
 
