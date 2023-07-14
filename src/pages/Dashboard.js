@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 const { Configuration, OpenAIApi } = require("openai");
-
 const configuration = new Configuration({
   apiKey: "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",
 });
+const User = require("../mongo");
+const openai = new OpenAIApi(configuration);
 const Dashboard = () => {
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
@@ -39,6 +40,45 @@ const Dashboard = () => {
   }, [location]);
 
   const handleOnSubmit = () => {
+    async function generateWorkoutPlanWithOpenAI(user) {
+      console.log("hi");
+      try {
+        const completion = await openai.createChatCompletion({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "user",
+              content: `Generate a daily workout plan for a user with the following information:
+              - Age: ${user.age}
+              - Weight: ${user.weight}
+              - Height: ${user.height}
+              - Fitness Goals: ${user.fitnessGoals},
+              generate the workout day-wise for 7 days. and give three exercises for each day. start with monday`,
+            },
+          ],
+        });
+        const workoutPlan = completion.data.choices[0].message.content;
+        const userModel = await User.findById(user._id);
+        if (!userModel) {
+          throw new Error(`User with ID ${user._id} not found`);
+        }
+
+        userModel.workoutPlan = workoutPlan;
+        await userModel.save(); // Now you can call .save()
+        console.log("Workout plan:", workoutPlan);
+        return workoutPlan;
+      } catch (err) {
+        console.error("Error generating workout plan with OpenAI API:", err);
+
+        // Log the error response from the OpenAI API
+        console.error(
+          "OpenAI API error response:",
+          err.response ? err.response.data : "No error response available"
+        );
+
+        return "Error generating workout plan. Please try again later.";
+      }
+    }
     const user = {
       userId, // Use userId instead of email
       sex,
@@ -50,13 +90,16 @@ const Dashboard = () => {
       desiredBodyFat,
     };
 
-    //...
     fetch(`http://localhost:8000/dashboard`, {
-      //...
+      method: "POST", // or 'PUT' if you're updating an existing user
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        console.log("Success:", data);
         generateWorkoutPlanWithOpenAI(user) // Generate workout plan with OpenAI API
           .then((workoutPlan) => {
             setWorkoutPlan(workoutPlan);
@@ -104,6 +147,10 @@ const Dashboard = () => {
       }}
     >
       <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleOnSubmit();
+        }}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -214,7 +261,7 @@ const Dashboard = () => {
         />
 
         <button
-          onClick={handleOnSubmit}
+          type="submit"
           style={{
             padding: "10px",
             borderRadius: "5px",
@@ -242,7 +289,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {currentExercises.length > 0 && (
+        {currentExercises.length > -1 && (
           <div
             style={{
               marginTop: "20px",
