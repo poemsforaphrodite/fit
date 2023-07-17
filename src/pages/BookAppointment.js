@@ -12,10 +12,14 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import StripeCheckout from "react-stripe-checkout";
+import { loadStripe } from "@stripe/stripe-js";
 
 const BookAppointment = () => {
   const location = useLocation();
-
+  const stripePromise = loadStripe(
+    "pk_test_51NUTGeSIumqhegZiJ8KVV7FwNrNEEk9JDWghGuW4IgwsNcFkHaExBt5OYo0TYi5LSpmHa6UQnx9hE3Bgyjih9Nyu00wF1xAnYm"
+  );
   // Function to parse query parameters
   const getQueryParam = (name) => {
     return new URLSearchParams(location.search).get(name);
@@ -31,7 +35,25 @@ const BookAppointment = () => {
   //TODO:add current appointments
   // List of therapists
   const therapists = ["Therapist A", "Therapist B", "Therapist C"];
+  const onToken = async (token) => {
+    try {
+      const response = await axios.post("http://localhost:8000/charge", {
+        stripeToken: token.id,
+        // include any other information you need
+      });
 
+      if (response.data.status === "succeeded") {
+        console.log("Payment succeeded");
+        // handle successful payment
+      } else {
+        console.log("Payment failed");
+        // handle failed payment
+      }
+    } catch (error) {
+      console.log("Payment error: ", error);
+      // handle error
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       console.log("useEffect triggered");
@@ -52,7 +74,7 @@ const BookAppointment = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/BookAppointment",
+        "http://localhost:8000/create-checkout-session", // Use create-checkout-session endpoint
         {
           userId, // Add userId to the request body
           therapistId: 1, // Replace with actual therapist ID
@@ -66,12 +88,14 @@ const BookAppointment = () => {
           },
         }
       );
+      const stripe = await stripePromise;
+      const checkoutSession = await response.data;
+      const result = await stripe.redirectToCheckout({
+        sessionId: checkoutSession.id,
+      });
 
-      console.log("Response from server:", response);
-
-      if (response.data) {
-        console.log("Appointment booked");
-        alert("Booked");
+      if (result.error) {
+        console.error("Error redirecting to checkout:", error);
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -192,5 +216,4 @@ const BookAppointment = () => {
     </Box>
   );
 };
-
 export default BookAppointment;

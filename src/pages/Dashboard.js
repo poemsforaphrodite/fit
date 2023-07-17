@@ -4,7 +4,6 @@ const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
   apiKey: "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",
 });
-const User = require("../mongo");
 const openai = new OpenAIApi(configuration);
 const Dashboard = () => {
   const [token, setToken] = useState("");

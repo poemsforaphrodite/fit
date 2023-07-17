@@ -5,6 +5,9 @@ const axios = require("axios");
 const configuration = new Configuration({
   apiKey: "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",
 });
+const stripe = require("stripe")(
+  "sk_test_51NUTGeSIumqhegZiE5mk70SY3wW3wLSROTnxXVKSOUl4psQzytfdLqFf6yrOHCHNEoVKqC7NvyttOGEmJgyNFavk00cANk5Kf2"
+);
 const openai = new OpenAIApi(configuration);
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
@@ -44,8 +47,11 @@ app.post("/login", cors(), async (req, res) => {
 
         // Generate the URL for the Dashboard component
         const url = generateUrl(token, user._id, "dashboard");
-         console.log(`http://localhost:3000`+generateUrl(token, user._id, 'BookAppointment'));
-         console.log(generateUrl(token, user._id, 'dashboard'));
+        console.log(
+          `http://localhost:3000` +
+            generateUrl(token, user._id, "BookAppointment")
+        );
+        console.log(generateUrl(token, user._id, "dashboard"));
         if (typeof window !== "undefined") {
           localStorage.setItem(
             "dashboard",
@@ -60,7 +66,7 @@ app.post("/login", cors(), async (req, res) => {
           message: "Logged in successfully",
           token: token,
           url: url,
-          userId:user._id // Return the generated URL
+          userId: user._id, // Return the generated URL
         });
       } else {
         res.status(401).json({ message: "Incorrect password" });
@@ -155,7 +161,6 @@ const verifyToken = (req, res, next) => {
 
 app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
   console.log("Request body:", req.body);
-  const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
 
   try {
     const user = await User.findById(userId); // Find user using userId
@@ -322,6 +327,103 @@ async function generateWorkoutPlanWithOpenAI(user) {
     return "Error generating workout plan. Please try again later.";
   }
 }
+// On your server
+app.post('/create-checkout-session', async (req, res) => {
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Appointment',
+        },
+        unit_amount: 2000,
+      },
+      quantity: 1,
+    }],
+    mode: 'payment',
+    success_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
+    cancel_url: 'http://localhost:3000/cancel',
+  });
+
+  // Save the booking directly to the User collection
+  const user = await User.findOne({ _id: req.body.userId });
+
+  if (user) {
+    user.therapistId = req.body.therapistId;
+    user.appointmentDate = req.body.appointmentDate;
+    user.appointmentTime = req.body.appointmentTime;
+    user.status = req.body.status;
+
+    await user.save();
+  }
+
+  res.json({ id: session.id });
+});
+
+app.post('/webhook', async (req, res) => {
+  const event = req.body;
+
+  if (event.type === 'checkout.session.completed') {
+    const sessionId = event.data.object.id;
+
+    // Retrieve the temporary booking using session ID
+    const tmpBooking = await TemporaryBooking.findById(sessionId);
+    
+    try {
+      const user = await User.findById(tmpBooking.userId);
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      const zoomAccessToken = await getZoomAccessToken(
+        process.env.ZOOM_CLIENT_ID,
+        process.env.ZOOM_CLIENT_SECRET,
+        process.env.ZOOM_USER_ID
+      );
+
+      if (!zoomAccessToken) {
+        res.status(500).json({ message: "Error getting Zoom access token" });
+        return;
+      }
+
+      const zoomMeeting = await createZoomMeeting(
+        process.env.ZOOM_USER_ID,
+        zoomAccessToken,
+        tmpBooking.appointmentDate,
+        tmpBooking.appointmentTime
+      );
+
+      if (!zoomMeeting) {
+        res.status(500).json({ message: "Error creating Zoom meeting" });
+        return;
+      }
+
+      user.therapistId = tmpBooking.therapistId;
+      user.appointmentDate = tmpBooking.appointmentDate;
+      user.appointmentTime = tmpBooking.appointmentTime;
+      user.zoomMeetingId = zoomMeeting.id;
+      user.zoomMeetingJoinUrl = zoomMeeting.join_url;
+      user.status = tmpBooking.status;
+      await user.save();
+
+      // Remove the temporary booking after successfully creating the appointment
+      await TemporaryBooking.delete(sessionId);
+
+      res.status(200).json({
+        message: "Appointment booked successfully",
+        zoomMeeting: zoomMeeting,
+      });
+    } catch (e) {
+      console.error(e.message);
+      console.error(e.stack);
+      res.status(500).json({ message: "An error occurred" });
+    }
+  }
+
+  // Handle other types of events
+});
 
 // Workout plan route
 app.get("/workout-plan/:userId", async (req, res) => {
