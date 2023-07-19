@@ -426,25 +426,16 @@ app.post('/webhook', async (req, res) => {
 });
 
 // Workout plan route
-app.get("/workout-plan/:userId", async (req, res) => {
-  console.log("Request params:", req.params);
+app.get("/generate-workout-plan/:userId", cors(), async (req, res) => {
   try {
-    const user = await User.findById(`${req.params.userId}`);
+    const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
-
-    // Generate a workout plan based on the user's data
-    const workoutPlan = await generateWorkoutPlanWithOpenAI(user); // Use the new function
-
-    // Generate the workout plan URL
-    const workoutPlanUrl = `http://localhost:3000/workout-plan/${req.params.userId}`;
-
-    // Log the generated URL and workout plan
-    console.log("Workout Plan URL:", workoutPlanUrl);
-    console.log("Workout Plan:", workoutPlan);
-
-    res.send(workoutPlan);
+    const workoutPlan = await generateWorkoutPlanWithOpenAI(user);
+    user.workoutPlan = workoutPlan;
+    await user.save();
+    res.json({workoutPlan: workoutPlan});
   } catch (err) {
     res.status(500).send("Server error");
   }

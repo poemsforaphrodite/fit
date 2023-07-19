@@ -5,6 +5,7 @@ const configuration = new Configuration({
   apiKey: "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",
 });
 const openai = new OpenAIApi(configuration);
+
 const Dashboard = () => {
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
@@ -57,7 +58,7 @@ const Dashboard = () => {
           ],
         });
         const workoutPlan = completion.data.choices[0].message.content;
-        const userModel = await User.findById(user._id);
+        const userModel = await user.findById(user._id);
         if (!userModel) {
           throw new Error(`User with ID ${user._id} not found`);
         }
@@ -90,7 +91,7 @@ const Dashboard = () => {
     };
 
     fetch(`http://localhost:8000/dashboard`, {
-      method: "POST", // or 'PUT' if you're updating an existing user
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
@@ -99,10 +100,10 @@ const Dashboard = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Success:", data);
-        generateWorkoutPlanWithOpenAI(user) // Generate workout plan with OpenAI API
-          .then((workoutPlan) => {
-            setWorkoutPlan(workoutPlan);
-            setCurrentExercises(parseWorkoutPlan(workoutPlan)); // Parse the workout plan and set current exercises
+        fetch(`http://localhost:8000/generate-workout-plan/${userId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            setWorkoutPlan(data.workoutPlan);
           })
           .catch((error) => {
             console.error("Error generating workout plan:", error);
@@ -113,26 +114,20 @@ const Dashboard = () => {
       });
   };
 
-  const parseWorkoutPlan = (workoutPlan) => {
-    // Parse the workout plan and extract current exercises
-    const exercises = [];
-    const lines = workoutPlan.split("\n");
-    let day = "";
-    for (const line of lines) {
-      if (line.includes("Day:")) {
-        day = line.slice(5).trim();
-      } else if (line.includes("-")) {
-        const exercise = line.slice(1).trim();
-        if (day && exercise) {
-          exercises.push({
-            day,
-            exercise,
-          });
-        }
-      }
-    }
-    return exercises;
-  };
+  function parseWorkoutPlan(workoutPlan) {
+  const days = workoutPlan.split("\n\n");
+
+  const exercises = days.map(day => {
+    const [dayName, ...exerciseLines] = day.split("\n");
+    const exercises = exerciseLines.map(line => line.substring(3)); // remove "1. " prefix
+    return {
+      day: dayName,
+      exercises
+    };
+  });
+
+  return exercises;
+}
 
   return (
     <div
