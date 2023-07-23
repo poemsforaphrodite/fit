@@ -160,61 +160,47 @@ const verifyToken = (req, res, next) => {
 };
 
 app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
-  console.log("Request body:", req.body);
-
-  try {
-    const user = await User.findById(userId); // Find user using userId
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
+ try {
     // Get Zoom access token
-    //console.log("process.env.ZOOM_CLIENT_ID:", process.env.ZOOM_CLIENT_ID);
     const zoomAccessToken = await getZoomAccessToken(
       process.env.ZOOM_CLIENT_ID,
       process.env.ZOOM_CLIENT_SECRET,
       process.env.ZOOM_USER_ID
     );
-    console.log("zoomAccessToken:", zoomAccessToken); // Add this line
 
     if (!zoomAccessToken) {
-      console.log("meow1");
-      res.status(500).json({ message: "Error getting Zoom access token" });
-      return;
+      throw new Error("Error getting Zoom access token");
     }
 
     // Create Zoom meeting
     const zoomMeeting = await createZoomMeeting(
       process.env.ZOOM_USER_ID,
       zoomAccessToken,
-      appointmentDate,
-      appointmentTime
+      req.body.appointmentDate,
+      req.body.appointmentTime
     );
-    console.log("zoomMeeting:", zoomMeeting); // Add this line
 
     if (!zoomMeeting) {
-      console.log("meow2");
-      res.status(500).json({ message: "Error creating Zoom meeting" });
-      return;
+      throw new Error("Error creating Zoom meeting");
     }
 
-    user.therapistId = therapistId;
-    user.appointmentDate = appointmentDate;
-    user.appointmentTime = appointmentTime;
+    const user = await User.findById(req.body.userId);
+    user.therapistId = req.body.therapistId;
+    user.appointmentDate = req.body.appointmentDate;
+    user.appointmentTime = req.body.appointmentTime;
     user.zoomMeetingId = zoomMeeting.id; // Save Zoom meeting ID
     user.zoomMeetingJoinUrl = zoomMeeting.join_url; // Save Zoom meeting join URL
     user.status = "pending";
     await user.save();
 
-    res.status(200).json({
+    return {
       message: "Appointment booked successfully",
       zoomMeeting: zoomMeeting, // Return the Zoom meeting details
-    });
+    };
   } catch (e) {
     console.error(e.message);
     console.error(e.stack);
-    res.status(500).json({ message: "An error occurred" });
+    throw e;
   }
 });
 
@@ -244,6 +230,8 @@ async function getZoomAccessToken(clientId, clientSecret, accountId) {
     return null;
   }
 }
+
+//FIXME: booking is done before payment
 async function createZoomMeeting(
   userId,
   accessToken,
@@ -328,7 +316,54 @@ async function generateWorkoutPlanWithOpenAI(user) {
   }
 }
 // On your server
+
+async function bookAppointment(req) {
+  console.log("haaaaaaaaaaaaaaaaai");
+  try {
+    // Get Zoom access token
+    const zoomAccessToken = await getZoomAccessToken(
+      process.env.ZOOM_CLIENT_ID,
+      process.env.ZOOM_CLIENT_SECRET,
+      process.env.ZOOM_USER_ID
+    );
+
+    if (!zoomAccessToken) {
+      throw new Error("Error getting Zoom access token");
+    }
+
+    // Create Zoom meeting
+    const zoomMeeting = await createZoomMeeting(
+      process.env.ZOOM_USER_ID,
+      zoomAccessToken,
+      req.body.appointmentDate,
+      req.body.appointmentTime
+    );
+
+    if (!zoomMeeting) {
+      throw new Error("Error creating Zoom meeting");
+    }
+
+    const user = await User.findById(req.body.userId);
+    user.therapistId = req.body.therapistId;
+    user.appointmentDate = req.body.appointmentDate;
+    user.appointmentTime = req.body.appointmentTime;
+    user.zoomMeetingId = zoomMeeting.id; // Save Zoom meeting ID
+    user.zoomMeetingJoinUrl = zoomMeeting.join_url; // Save Zoom meeting join URL
+    user.status = "pending";
+    await user.save();
+
+    return {
+      message: "Appointment booked successfully",
+      zoomMeeting: zoomMeeting, // Return the Zoom meeting details
+    };
+  } catch (e) {
+    console.error(e.message);
+    console.error(e.stack);
+    throw e;
+  }
+}
 app.post('/create-checkout-session', async (req, res) => {
+  console.log("hi");
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [{
@@ -342,87 +377,64 @@ app.post('/create-checkout-session', async (req, res) => {
       quantity: 1,
     }],
     mode: 'payment',
-    success_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
-    cancel_url: 'http://localhost:3000/cancel',
+    success_url: `http://localhost:3000/`,
+    cancel_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
   });
 
-  // Save the booking directly to the User collection
-  const user = await User.findOne({ _id: req.body.userId });
-
-  if (user) {
-    user.therapistId = req.body.therapistId;
-    user.appointmentDate = req.body.appointmentDate;
-    user.appointmentTime = req.body.appointmentTime;
-    user.status = req.body.status;
-
-    await user.save();
+  try {
+    console.log(req.body);
+    const bookingResult = await bookAppointment(req);
+    
+    // Add webhook logic here
+    if (bookingResult.success) {
+      // Create Zoom meeting using the retrieved data
+      const zoomMeeting = await createZoomMeeting(req.body);
+      console.log("Zoom meeting created:", zoomMeeting);
+    }
+    
+    res.json({ id: session.id, booking: bookingResult });
+  } catch (e) {
+    res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
   }
-
-  res.json({ id: session.id });
 });
 
-app.post('/webhook', async (req, res) => {
-  const event = req.body;
 
-  if (event.type === 'checkout.session.completed') {
-    const sessionId = event.data.object.id;
+app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  let event;
 
-    // Retrieve the temporary booking using session ID
-    const tmpBooking = await TemporaryBooking.findById(sessionId);
-    
-    try {
-      const user = await User.findById(tmpBooking.userId);
-      if (!user) {
-        res.status(404).json({ message: "User not found" });
-        return;
-      }
-
-      const zoomAccessToken = await getZoomAccessToken(
-        process.env.ZOOM_CLIENT_ID,
-        process.env.ZOOM_CLIENT_SECRET,
-        process.env.ZOOM_USER_ID
-      );
-
-      if (!zoomAccessToken) {
-        res.status(500).json({ message: "Error getting Zoom access token" });
-        return;
-      }
-
-      const zoomMeeting = await createZoomMeeting(
-        process.env.ZOOM_USER_ID,
-        zoomAccessToken,
-        tmpBooking.appointmentDate,
-        tmpBooking.appointmentTime
-      );
-
-      if (!zoomMeeting) {
-        res.status(500).json({ message: "Error creating Zoom meeting" });
-        return;
-      }
-
-      user.therapistId = tmpBooking.therapistId;
-      user.appointmentDate = tmpBooking.appointmentDate;
-      user.appointmentTime = tmpBooking.appointmentTime;
-      user.zoomMeetingId = zoomMeeting.id;
-      user.zoomMeetingJoinUrl = zoomMeeting.join_url;
-      user.status = tmpBooking.status;
-      await user.save();
-
-      // Remove the temporary booking after successfully creating the appointment
-      await TemporaryBooking.delete(sessionId);
-
-      res.status(200).json({
-        message: "Appointment booked successfully",
-        zoomMeeting: zoomMeeting,
-      });
-    } catch (e) {
-      console.error(e.message);
-      console.error(e.stack);
-      res.status(500).json({ message: "An error occurred" });
-    }
+  try {
+    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Handle other types of events
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+
+    // The payment is successful, you can now book the appointment
+    // Replace 'token' and 'userId' with actual values from your application
+    const bookingReq = {
+      body: {
+        token: 'token',
+        userId: 'userId',
+        therapistId: 'therapistId',
+        appointmentDate: 'appointmentDate',
+        appointmentTime: 'appointmentTime',
+        status: 'status'
+      }
+    };
+
+    try {
+      const bookingResult = await bookAppointment(bookingReq);
+      res.json({ id: session.id, booking: bookingResult });
+    } catch (e) {
+      res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
+    }
+  }
+  
+  // other event types...
+  
+  res.json({received: true});
 });
 
 // Workout plan route

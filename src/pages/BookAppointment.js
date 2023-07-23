@@ -75,7 +75,8 @@ const BookAppointment = () => {
     try {
       const response = await axios.post(
         "http://localhost:8000/create-checkout-session", // Use create-checkout-session endpoint
-        {
+        { // Pass the following data to the request body
+          token,
           userId, // Add userId to the request body
           therapistId: 1, // Replace with actual therapist ID
           appointmentDate: date,
@@ -113,9 +114,10 @@ const BookAppointment = () => {
       <Container maxWidth="sm">
         <Box
           sx={{
-            backgroundColor: "#36393F",
+            backgroundColor: "#FFFEC4",
             borderRadius: 1,
             padding: 3,
+            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
           }}
         >
           <Grid container spacing={3} justifyContent="center">
@@ -123,7 +125,7 @@ const BookAppointment = () => {
               <Typography
                 variant="h4"
                 align="center"
-                sx={{ color: "#FFFFFF", marginBottom: 2 }}
+                sx={{ color: "#0093f7", marginBottom: 2 }}
               >
                 Book an Appointment
               </Typography>
@@ -140,13 +142,13 @@ const BookAppointment = () => {
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    color: "#FFFFFF",
+                    color: "#333",
                   },
                   "& .MuiInputLabel-root": {
-                    color: "#B9BBBE",
+                    color: "#333",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               />
@@ -163,13 +165,13 @@ const BookAppointment = () => {
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    color: "#FFFFFF",
+                    color: "#333",
                   },
                   "& .MuiInputLabel-root": {
-                    color: "#B9BBBE",
+                    color: "#333",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               />
@@ -180,10 +182,10 @@ const BookAppointment = () => {
                 value={therapist}
                 onChange={(e) => setTherapist(e.target.value)}
                 sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#40444B",
+                  color: "#333",
+                  backgroundColor: "#ddd",
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               >
@@ -201,9 +203,10 @@ const BookAppointment = () => {
                 onClick={handleBookAppointment}
                 fullWidth
                 sx={{
-                  backgroundColor: "#FFD6A5",
+                  backgroundColor: "#0093f7",
+                  color: "#fff",
                   "&:hover": {
-                    backgroundColor: "#FF9B9B",
+                    backgroundColor: "#0073e6",
                   },
                 }}
               >
