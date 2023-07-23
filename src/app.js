@@ -5,6 +5,9 @@ const axios = require("axios");
 const configuration = new Configuration({
   apiKey: "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",
 });
+const stripe = require("stripe")(
+  "sk_test_51NUTGeSIumqhegZiE5mk70SY3wW3wLSROTnxXVKSOUl4psQzytfdLqFf6yrOHCHNEoVKqC7NvyttOGEmJgyNFavk00cANk5Kf2"
+);
 const openai = new OpenAIApi(configuration);
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
@@ -23,17 +26,14 @@ app.get("/", cors(), (req, res) => {
 
 app.post("/login", cors(), async (req, res) => {
   const { email, password } = req.body;
-  const generateUrl = (token, userId) => {
-    let url = "/bookappointment";
+  const generateUrl = (token, userId, path) => {
+    let url = `/${path}`;
     if (token) {
       url += `?token=${token}`;
     }
     if (userId) {
       url += token ? `&userId=${userId}` : `?userId=${userId}`;
     }
-    console.log(url);
-    console.log(`http://localhost:3000/workout-plan/${userId}`);
-    // Inside your login function after a successful login response
     return url;
   };
   try {
@@ -43,25 +43,30 @@ app.post("/login", cors(), async (req, res) => {
         const token = jwt.sign({ email: email }, process.env.JWT_SECRET);
 
         // Log the generated token
-        console.log(`Token generated successfully: ${token}`);
+        // console.log(`Token generated successfully: ${token}`);
 
-        // Generate the URL for the BookAppointment component
-        const url = generateUrl(token, user._id);
-        // localStorage.setItem("bookAppointmentUrl", response.data.url);
-        // Store the token value using your preferred method (e.g., localStorage, cookies, etc.)
-        //TODO:implement local storage
-        // localStorage.setItem("token", token);
-
-        // // Store the URL in local storage
-        // localStorage.setItem("bookAppointmentUrl", url);
-
-        // // Redirect the user to the BookAppointment component using the received URL
-        // history.push(url);
-
+        // Generate the URL for the Dashboard component
+        const url = generateUrl(token, user._id, "dashboard");
+        console.log(
+          `http://localhost:3000` +
+            generateUrl(token, user._id, "BookAppointment")
+        );
+        console.log(generateUrl(token, user._id, "dashboard"));
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            "dashboard",
+            generateUrl(token, user._id, "dashboard")
+          );
+          localStorage.setItem(
+            "BookAppointment",
+            generateUrl(token, user._id, "BookAppointment")
+          );
+        }
         res.status(200).json({
           message: "Logged in successfully",
           token: token,
-          url: url, // Return the generated URL
+          url: url,
+          userId: user._id, // Return the generated URL
         });
       } else {
         res.status(401).json({ message: "Incorrect password" });
@@ -95,9 +100,9 @@ app.post("/signup", cors(), async (req, res) => {
   }
 });
 
-app.post("/update", cors(), async (req, res) => {
+app.post("/dashboard/", cors(), async (req, res) => {
   const {
-    email,
+    userId,
     sex,
     age,
     height,
@@ -107,7 +112,7 @@ app.post("/update", cors(), async (req, res) => {
     desiredBodyFat,
   } = req.body;
   try {
-    const user = await User.findOne({ email: email });
+    const user = await User.findById(userId);
     if (user) {
       user.sex = sex;
       user.age = age;
@@ -155,62 +160,47 @@ const verifyToken = (req, res, next) => {
 };
 
 app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
-  console.log("Request body:", req.body);
-  const { userId, therapistId, appointmentDate, appointmentTime } = req.body;
-
-  try {
-    const user = await User.findById(userId); // Find user using userId
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
+ try {
     // Get Zoom access token
-    //console.log("process.env.ZOOM_CLIENT_ID:", process.env.ZOOM_CLIENT_ID);
     const zoomAccessToken = await getZoomAccessToken(
       process.env.ZOOM_CLIENT_ID,
       process.env.ZOOM_CLIENT_SECRET,
       process.env.ZOOM_USER_ID
     );
-    console.log("zoomAccessToken:", zoomAccessToken); // Add this line
 
     if (!zoomAccessToken) {
-      console.log("meow1");
-      res.status(500).json({ message: "Error getting Zoom access token" });
-      return;
+      throw new Error("Error getting Zoom access token");
     }
 
     // Create Zoom meeting
     const zoomMeeting = await createZoomMeeting(
       process.env.ZOOM_USER_ID,
       zoomAccessToken,
-      appointmentDate,
-      appointmentTime
+      req.body.appointmentDate,
+      req.body.appointmentTime
     );
-    console.log("zoomMeeting:", zoomMeeting); // Add this line
 
     if (!zoomMeeting) {
-      console.log("meow2");
-      res.status(500).json({ message: "Error creating Zoom meeting" });
-      return;
+      throw new Error("Error creating Zoom meeting");
     }
 
-    user.therapistId = therapistId;
-    user.appointmentDate = appointmentDate;
-    user.appointmentTime = appointmentTime;
+    const user = await User.findById(req.body.userId);
+    user.therapistId = req.body.therapistId;
+    user.appointmentDate = req.body.appointmentDate;
+    user.appointmentTime = req.body.appointmentTime;
     user.zoomMeetingId = zoomMeeting.id; // Save Zoom meeting ID
     user.zoomMeetingJoinUrl = zoomMeeting.join_url; // Save Zoom meeting join URL
     user.status = "pending";
     await user.save();
 
-    res.status(200).json({
+    return {
       message: "Appointment booked successfully",
       zoomMeeting: zoomMeeting, // Return the Zoom meeting details
-    });
+    };
   } catch (e) {
     console.error(e.message);
     console.error(e.stack);
-    res.status(500).json({ message: "An error occurred" });
+    throw e;
   }
 });
 
@@ -240,6 +230,8 @@ async function getZoomAccessToken(clientId, clientSecret, accountId) {
     return null;
   }
 }
+
+//FIXME: booking is done before payment
 async function createZoomMeeting(
   userId,
   accessToken,
@@ -323,27 +315,129 @@ async function generateWorkoutPlanWithOpenAI(user) {
     return "Error generating workout plan. Please try again later.";
   }
 }
+// On your server
+
+async function bookAppointment(req) {
+  console.log("haaaaaaaaaaaaaaaaai");
+  try {
+    // Get Zoom access token
+    const zoomAccessToken = await getZoomAccessToken(
+      process.env.ZOOM_CLIENT_ID,
+      process.env.ZOOM_CLIENT_SECRET,
+      process.env.ZOOM_USER_ID
+    );
+
+    if (!zoomAccessToken) {
+      throw new Error("Error getting Zoom access token");
+    }
+
+    // Create Zoom meeting
+    const zoomMeeting = await createZoomMeeting(
+      process.env.ZOOM_USER_ID,
+      zoomAccessToken,
+      req.body.appointmentDate,
+      req.body.appointmentTime
+    );
+
+    if (!zoomMeeting) {
+      throw new Error("Error creating Zoom meeting");
+    }
+
+    const user = await User.findById(req.body.userId);
+    user.therapistId = req.body.therapistId;
+    user.appointmentDate = req.body.appointmentDate;
+    user.appointmentTime = req.body.appointmentTime;
+    user.zoomMeetingId = zoomMeeting.id; // Save Zoom meeting ID
+    user.zoomMeetingJoinUrl = zoomMeeting.join_url; // Save Zoom meeting join URL
+    user.status = "pending";
+    await user.save();
+
+    return {
+      message: "Appointment booked successfully",
+      zoomMeeting: zoomMeeting, // Return the Zoom meeting details
+    };
+  } catch (e) {
+    console.error(e.message);
+    console.error(e.stack);
+    throw e;
+  }
+}
+app.post('/create-checkout-session', async (req, res) => {
+  console.log("hi");
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Appointment',
+        },
+        unit_amount: 2000,
+      },
+      quantity: 1,
+    }],
+    mode: 'payment',
+    success_url: 'http://localhost:3000/',
+    cancel_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
+  });
+
+  try {
+    console.log(req.body);
+    const bookingResult = await bookAppointment(req);
+
+    // Add webhook logic here
+    if (bookingResult.success) {
+      // Create Zoom meeting using the retrieved data
+      const zoomMeeting = await createZoomMeeting(req.body);
+      console.log("Zoom meeting created:", zoomMeeting);
+    }
+
+    res.json({ id: session.id, booking: bookingResult });
+  } catch (e) {
+    res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
+  }
+});
+
+const endpointSecret = "whsec_07ab00d0a2e1d2ac097d07e7cb9b9dc6f861ed96e7d970bd684325209dfd2839";
+
+app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntentSucceeded = event.data.object;
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
 
 // Workout plan route
-app.get("/workout-plan/:userId", async (req, res) => {
-  console.log("Request params:", req.params);
+app.get("/generate-workout-plan/:userId", cors(), async (req, res) => {
   try {
-    const user = await User.findById(`${req.params.userId}`);
+    const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
-
-    // Generate a workout plan based on the user's data
-    const workoutPlan = await generateWorkoutPlanWithOpenAI(user); // Use the new function
-
-    // Generate the workout plan URL
-    const workoutPlanUrl = `http://localhost:3000/workout-plan/${req.params.userId}`;
-
-    // Log the generated URL and workout plan
-    console.log("Workout Plan URL:", workoutPlanUrl);
-    console.log("Workout Plan:", workoutPlan);
-
-    res.send(workoutPlan);
+    const workoutPlan = await generateWorkoutPlanWithOpenAI(user);
+    user.workoutPlan = workoutPlan;
+    await user.save();
+    res.json({workoutPlan: workoutPlan});
   } catch (err) {
     res.status(500).send("Server error");
   }

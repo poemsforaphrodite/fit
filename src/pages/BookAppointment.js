@@ -1,4 +1,4 @@
-//TODO: give the user to book another time if already booked
+// src/pages/BookAppointment.js
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -12,10 +12,14 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import StripeCheckout from "react-stripe-checkout";
+import { loadStripe } from "@stripe/stripe-js";
 
 const BookAppointment = () => {
   const location = useLocation();
-
+  const stripePromise = loadStripe(
+    "pk_test_51NUTGeSIumqhegZiJ8KVV7FwNrNEEk9JDWghGuW4IgwsNcFkHaExBt5OYo0TYi5LSpmHa6UQnx9hE3Bgyjih9Nyu00wF1xAnYm"
+  );
   // Function to parse query parameters
   const getQueryParam = (name) => {
     return new URLSearchParams(location.search).get(name);
@@ -31,7 +35,25 @@ const BookAppointment = () => {
   //TODO:add current appointments
   // List of therapists
   const therapists = ["Therapist A", "Therapist B", "Therapist C"];
+  const onToken = async (token) => {
+    try {
+      const response = await axios.post("http://localhost:8000/charge", {
+        stripeToken: token.id,
+        // include any other information you need
+      });
 
+      if (response.data.status === "succeeded") {
+        console.log("Payment succeeded");
+        // handle successful payment
+      } else {
+        console.log("Payment failed");
+        // handle failed payment
+      }
+    } catch (error) {
+      console.log("Payment error: ", error);
+      // handle error
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       console.log("useEffect triggered");
@@ -52,8 +74,9 @@ const BookAppointment = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/BookAppointment",
-        {
+        "http://localhost:8000/create-checkout-session", // Use create-checkout-session endpoint
+        { // Pass the following data to the request body
+          token,
           userId, // Add userId to the request body
           therapistId: 1, // Replace with actual therapist ID
           appointmentDate: date,
@@ -66,12 +89,14 @@ const BookAppointment = () => {
           },
         }
       );
+      const stripe = await stripePromise;
+      const checkoutSession = await response.data;
+      const result = await stripe.redirectToCheckout({
+        sessionId: checkoutSession.id,
+      });
 
-      console.log("Response from server:", response);
-
-      if (response.data) {
-        console.log("Appointment booked");
-        alert("Booked");
+      if (result.error) {
+        console.error("Error redirecting to checkout:", error);
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -81,7 +106,7 @@ const BookAppointment = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#36393F",
+        backgroundColor: "#FF9B9B",
         minHeight: "100vh",
         padding: 2,
       }}
@@ -89,9 +114,10 @@ const BookAppointment = () => {
       <Container maxWidth="sm">
         <Box
           sx={{
-            backgroundColor: "#2F3136",
+            backgroundColor: "#FFFEC4",
             borderRadius: 1,
             padding: 3,
+            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
           }}
         >
           <Grid container spacing={3} justifyContent="center">
@@ -99,7 +125,7 @@ const BookAppointment = () => {
               <Typography
                 variant="h4"
                 align="center"
-                sx={{ color: "#FFFFFF", marginBottom: 2 }}
+                sx={{ color: "#0093f7", marginBottom: 2 }}
               >
                 Book an Appointment
               </Typography>
@@ -116,13 +142,13 @@ const BookAppointment = () => {
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    color: "#FFFFFF",
+                    color: "#333",
                   },
                   "& .MuiInputLabel-root": {
-                    color: "#B9BBBE",
+                    color: "#333",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               />
@@ -139,13 +165,13 @@ const BookAppointment = () => {
                 }}
                 sx={{
                   "& .MuiInputBase-root": {
-                    color: "#FFFFFF",
+                    color: "#333",
                   },
                   "& .MuiInputLabel-root": {
-                    color: "#B9BBBE",
+                    color: "#333",
                   },
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               />
@@ -156,10 +182,10 @@ const BookAppointment = () => {
                 value={therapist}
                 onChange={(e) => setTherapist(e.target.value)}
                 sx={{
-                  color: "#FFFFFF",
-                  backgroundColor: "#40444B",
+                  color: "#333",
+                  backgroundColor: "#ddd",
                   "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#40444B",
+                    borderColor: "#ddd",
                   },
                 }}
               >
@@ -177,9 +203,10 @@ const BookAppointment = () => {
                 onClick={handleBookAppointment}
                 fullWidth
                 sx={{
-                  backgroundColor: "#7289DA",
+                  backgroundColor: "#0093f7",
+                  color: "#fff",
                   "&:hover": {
-                    backgroundColor: "#677BC4",
+                    backgroundColor: "#0073e6",
                   },
                 }}
               >
@@ -192,5 +219,4 @@ const BookAppointment = () => {
     </Box>
   );
 };
-
 export default BookAppointment;

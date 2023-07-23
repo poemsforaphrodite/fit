@@ -1,0 +1,28 @@
+/* Navbar.module.css */
+.linkStyle {
+    text-decoration: none;
+    color: #CBFFA9;  /* Light Coral */
+    font-size: 25px;
+    transition: 0.3s;
+  }
+  
+  .linkStyle:hover {
+    color: #FFD6A5;  /* Light Green */
+    transform: scale(1.1);
+  }
+  
+  .loginButtonStyle {
+    text-decoration: none;
+    color: #2E2E2E;  /* Dark Grey */
+    background-color: #FFD6A5;  /* Light Coral */
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: 0.3s;
+    font-size: 25px;
+  }
+  
+  .loginButtonStyle:hover {
+    background-color: #CBFFA9;  /* Light Green */
+    transform: scale(1.1);
+  }
+  

@@ -15,6 +15,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import BookAppointment from "./pages/BookAppointment";
 
+import Cat from "./components/Cat"; // Don't forget to import the Cat component
+
 const App = () => {
   const location = useLocation();
   const [userId, setUserId] = useState(null);
@@ -25,10 +27,11 @@ const App = () => {
   };
 
   return (
-    <Box width="400px" sx={{ width: { xl: "1488px" } }} m="auto">
+    <Box width="400px" sx={{ width: { xl: "1488px" }, backgroundColor: "#FF9B9B" }} m="auto">
       {location.pathname !== "/Login" && location.pathname !== "/signup" && (
         <Navbar userId={userId} token={token} />
       )}
+      <Cat /> {/* Add the Cat component here */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Login" element={<Login onLogin={handleLogin} />} />
