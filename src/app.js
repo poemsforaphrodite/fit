@@ -377,64 +377,54 @@ app.post('/create-checkout-session', async (req, res) => {
       quantity: 1,
     }],
     mode: 'payment',
-    success_url: `http://localhost:3000/`,
+    success_url: 'http://localhost:3000/',
     cancel_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
   });
 
   try {
     console.log(req.body);
     const bookingResult = await bookAppointment(req);
-    
+
     // Add webhook logic here
     if (bookingResult.success) {
       // Create Zoom meeting using the retrieved data
       const zoomMeeting = await createZoomMeeting(req.body);
       console.log("Zoom meeting created:", zoomMeeting);
     }
-    
+
     res.json({ id: session.id, booking: bookingResult });
   } catch (e) {
     res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
   }
 });
 
+const endpointSecret = "whsec_07ab00d0a2e1d2ac097d07e7cb9b9dc6f861ed96e7d970bd684325209dfd2839";
 
-app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
   } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-
-    // The payment is successful, you can now book the appointment
-    // Replace 'token' and 'userId' with actual values from your application
-    const bookingReq = {
-      body: {
-        token: 'token',
-        userId: 'userId',
-        therapistId: 'therapistId',
-        appointmentDate: 'appointmentDate',
-        appointmentTime: 'appointmentTime',
-        status: 'status'
-      }
-    };
-
-    try {
-      const bookingResult = await bookAppointment(bookingReq);
-      res.json({ id: session.id, booking: bookingResult });
-    } catch (e) {
-      res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
-    }
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntentSucceeded = event.data.object;
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
-  
-  // other event types...
-  
-  res.json({received: true});
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
 });
 
 // Workout plan route

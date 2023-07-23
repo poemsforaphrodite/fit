@@ -90,7 +90,7 @@ function Signup() {
       </form>
       <br />
       <Link
-        to="/login"
+        to="/Login"
         style={{ textAlign: "center", display: "block", color: "#FFD6A5" }}
       >
         Login
