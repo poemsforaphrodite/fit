@@ -61,6 +61,13 @@ function Login({ onLogin }) {
       >
         Signup
       </Link>
+      <br />
+      <Link
+        to="/"
+        className="Go-home"
+      >
+        Go to Home Page
+      </Link>
     </div>
   );
 }
