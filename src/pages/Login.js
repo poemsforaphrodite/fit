@@ -12,7 +12,7 @@ function Login({ onLogin }) {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:8000/login", {
+      const response = await axios.post("http://thera1.com/Login", {
         email,
         password,
       });
