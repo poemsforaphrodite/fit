@@ -11,7 +11,7 @@ const stripe = require("stripe")(
 const openai = new OpenAIApi(configuration);
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
-const User = require("./mongo"); // Updated import
+const User = require("../src/mongo"); // Updated import
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -19,7 +19,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-f
+
 app.get("/", cors(), (req, res) => {
   res.send("Hello Wossrldsssssss");
 });
