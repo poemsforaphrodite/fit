@@ -37,7 +37,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchExercises = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/get-exercises/${userId}`);
+            const response = await fetch(`https://fit-api.vercel.app/get-exercises/${userId}`);
             const data = await response.json();
 
             if (data && data.exercises) {

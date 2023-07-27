@@ -12,7 +12,7 @@ function Signup() {
 
     try {
       await axios
-        .post("http://localhost:8000/signup", {
+        .post("https://fit-api.vercel.app/signup", {
           email,
           password,
         })
