@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useLocation ,useNavigate} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 const { Configuration, OpenAIApi } = require("openai");
-import { animated, useSpring } from 'react-spring';
+import { animated, useSpring } from "react-spring";
 const configuration = new Configuration({
   apiKey: "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",
 });
@@ -32,9 +32,26 @@ const Dashboard = () => {
   const formAnimation = useSpring({
     from: { opacity: 0 },
     to: { opacity: 1 },
-    delay: 200
+    delay: 200,
   });
+  useEffect(() => {
+    const fetchExercises = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/get-exercises/${userId}`);
+            const data = await response.json();
 
+            if (data && data.exercises) {
+                setCurrentExercises(data.exercises);
+            }
+        } catch (error) {
+            console.error('Error fetching exercises:', error);
+        }
+    };
+
+    if (userId) { // Only fetch exercises if userId is set
+        fetchExercises();
+    }
+}, [userId]); // Run this effect whenever userId changes
   useEffect(() => {
     const fetchData = async () => {
       console.log("useEffect triggered");
@@ -42,8 +59,13 @@ const Dashboard = () => {
       const fetchedUserId = getQueryParam("userId");
       console.log("Token from query param:", fetchedToken);
       console.log("UserId from query param:", fetchedUserId);
-  
-      if (!fetchedToken || fetchedToken === "null" || !fetchedUserId || fetchedUserId === "null") {
+
+      if (
+        !fetchedToken ||
+        fetchedToken === "null" ||
+        !fetchedUserId ||
+        fetchedUserId === "null"
+      ) {
         navigate("/Login");
       } else {
         // Only set states if token and userId are not null
@@ -51,51 +73,11 @@ const Dashboard = () => {
         setUserId(fetchedUserId);
       }
     };
-  
+
     fetchData();
   }, [location, navigate]); // No need to watch token and userId
 
   const handleOnSubmit = () => {
-    
-    async function generateWorkoutPlanWithOpenAI(user) {
-      console.log("hi");
-      try {
-        const completion = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "user",
-              content: `Generate a daily workout plan for a user with the following information:
-              - Age: ${user.age}
-              - Weight: ${user.weight}
-              - Height: ${user.height}
-              - Fitness Goals: ${user.fitnessGoals},
-              generate the workout day-wise for 7 days. and give three exercises for each day. start with monday`,
-            },
-          ],
-        });
-        const workoutPlan = completion.data.choices[0].message.content;
-        const userModel = await user.findById(user._id);
-        if (!userModel) {
-          throw new Error(`User with ID ${user._id} not found`);
-        }
-
-        userModel.workoutPlan = workoutPlan;
-        await userModel.save(); // Now you can call .save()
-        console.log("Workout plan:", workoutPlan);
-        return workoutPlan;
-      } catch (err) {
-        console.error("Error generating workout plan with OpenAI API:", err);
-
-        // Log the error response from the OpenAI API
-        console.error(
-          "OpenAI API error response:",
-          err.response ? err.response.data : "No error response available"
-        );
-
-        return "Error generating workout plan. Please try again later.";
-      }
-    }
     const user = {
       userId, // Use userId instead of email
       sex,
@@ -154,10 +136,10 @@ const Dashboard = () => {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
-        backgroundColor: "#FF9B9B",  // Same color as Navbar
+        backgroundColor: "#FF9B9B", // Same color as Navbar
         padding: "20px",
       }}
-    > 
+    >
       <animated.form
         onSubmit={(e) => {
           e.preventDefault();
@@ -170,14 +152,13 @@ const Dashboard = () => {
           width: "80%",
           gap: "20px",
           backgroundColor: "#FFFEC4",
-          padding: "20px",
-          borderRadius: "10px",
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
-          marginTop: "300px", // Add this
-           // Add this
+          padding: "30px",
+          borderRadius: "20px",
+          boxShadow: "0 10px 20px rgba(0, 0, 0, 0.15)",
+          fontSize: "1.2rem", // Increased font size
+          marginTop: "100px",
         }}
       >
-
         <select
           value={fitnessGoals}
           onChange={(e) => setFitnessGoals(e.target.value)}
@@ -282,13 +263,16 @@ const Dashboard = () => {
         <button
           type="submit"
           style={{
-            padding: "10px",
-            borderRadius: "5px",
+            padding: "20px",
+            borderRadius: "10px",
             border: "none",
             backgroundColor: "#0093f7",
             color: "#fff",
             cursor: "pointer",
             fontWeight: "bold",
+            fontSize: "1.2rem", // Increased font size
+            boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)", // Add shadow effect
+            transition: "all 0.3s ease", // Add smooth transition
           }}
         >
           Submit
@@ -307,7 +291,7 @@ const Dashboard = () => {
             }}
           >
             <h2 style={{ color: "#0093f7" }}>Generated Workout Plan</h2>
-            <pre>{workoutPlan}</pre>
+            <pre style={{ whiteSpace: "pre-wrap" }}>{workoutPlan}</pre>
           </div>
         )}
 

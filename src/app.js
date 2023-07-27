@@ -19,7 +19,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-
+f
 app.get("/", cors(), (req, res) => {
   res.send("Hello Wossrldsssssss");
 });
@@ -434,10 +434,15 @@ app.get("/generate-workout-plan/:userId", cors(), async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
+    // If the user already has a workout plan, return that plan
+    if (user.workoutPlan) {
+      return res.json({ workoutPlan: user.workoutPlan });
+    }
+    // If the user doesn't have a workout plan, generate a new one
     const workoutPlan = await generateWorkoutPlanWithOpenAI(user);
     user.workoutPlan = workoutPlan;
     await user.save();
-    res.json({workoutPlan: workoutPlan});
+    res.json({ workoutPlan: workoutPlan });
   } catch (err) {
     res.status(500).send("Server error");
   }

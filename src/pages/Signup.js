@@ -1,8 +1,7 @@
-// src/pages/Signup.js
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import "./Signup.css"; // Import the CSS file here
 function Signup() {
   const history = useNavigate();
   const [email, setEmail] = React.useState("");
@@ -34,65 +33,28 @@ function Signup() {
     }
   }
   return (
-    <div
-      className="Login"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <form
-        action="POST"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyItems: "center",
-          alignItems: "center",
-        }}
-      >
+    <div className="Signup">
+      <form className="Signup-form" onSubmit={submit}>
         <input
           type="Email"
           onChange={(e) => {
             setEmail(e.target.value);
           }}
-          name=" "
-          id=" "
           placeholder="Email"
-          style={{ margin: "10px 0", padding: "10px", width: "130%" }}
+          className="Signup-input"
         />
         <input
           type="Password"
           onChange={(e) => {
             setPassword(e.target.value);
           }}
-          name=" "
-          id=" "
           placeholder="Password"
-          style={{ margin: "10px 0", padding: "10px", width: "130%" }}
+          className="Signup-input"
         />
-        <input
-          type="submit"
-          onClick={submit}
-          value="Signup"
-          style={{
-            margin: "10px 0",
-            padding: "10px",
-            width: "130%",
-            backgroundColor: "#FFD6A5",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-          }}
-        />
+        <input type="submit" value="Signup" className="Signup-submit" />
       </form>
       <br />
-      <Link
-        to="/Login"
-        style={{ textAlign: "center", display: "block", color: "#FFD6A5" }}
-      >
+      <Link to="/Login" className="Login-link">
         Login
       </Link>
     </div>
