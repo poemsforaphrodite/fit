@@ -8,9 +8,7 @@ const configuration = new Configuration({
 const stripe = require("stripe")(
   "sk_test_51NUTGeSIumqhegZiE5mk70SY3wW3wLSROTnxXVKSOUl4psQzytfdLqFf6yrOHCHNEoVKqC7NvyttOGEmJgyNFavk00cANk5Kf2"
 );
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
+
 const openai = new OpenAIApi(configuration);
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
@@ -52,11 +50,12 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: "https://thera1.com",
-  })
-);
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token');
+  next();
+});
 
 app.get("/", cors(), (req, res) => {
   res.send("Hello Wossrldsssssss");
