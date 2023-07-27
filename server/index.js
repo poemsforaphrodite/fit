@@ -21,7 +21,6 @@ mongoose
   .then(() => console.log("Connected to MongoDB..."))
   .catch((err) => console.error("Could not connect to MongoDB..."));
 
-
 const newSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true }, // Add this line
   email: { type: String, required: true },
@@ -40,7 +39,7 @@ const newSchema = new mongoose.Schema({
   temp: {
     meow: { type: String },
     meow2: { type: String },
-  }
+  },
 });
 
 const User = mongoose.model("User", newSchema);
@@ -50,7 +49,11 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://thera1.com",
+  })
+);
 
 app.get("/", cors(), (req, res) => {
   res.send("Hello Wossrldsssssss");
@@ -192,7 +195,7 @@ const verifyToken = (req, res, next) => {
 };
 
 app.post("/BookAppointment", cors(), verifyToken, async (req, res) => {
- try {
+  try {
     // Get Zoom access token
     const zoomAccessToken = await getZoomAccessToken(
       process.env.ZOOM_CLIENT_ID,
@@ -394,22 +397,24 @@ async function bookAppointment(req) {
     throw e;
   }
 }
-app.post('/create-checkout-session', async (req, res) => {
+app.post("/create-checkout-session", async (req, res) => {
   console.log("hi");
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [{
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Appointment',
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Appointment",
+          },
+          unit_amount: 2000,
         },
-        unit_amount: 2000,
+        quantity: 1,
       },
-      quantity: 1,
-    }],
-    mode: 'payment',
-    success_url: 'http://localhost:3000/',
+    ],
+    mode: "payment",
+    success_url: "http://localhost:3000/",
     cancel_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
   });
 
@@ -426,38 +431,48 @@ app.post('/create-checkout-session', async (req, res) => {
 
     res.json({ id: session.id, booking: bookingResult });
   } catch (e) {
-    res.status(500).json({ message: "An error occurred while booking the appointment", error: e.message });
+    res
+      .status(500)
+      .json({
+        message: "An error occurred while booking the appointment",
+        error: e.message,
+      });
   }
 });
 
-const endpointSecret = "whsec_07ab00d0a2e1d2ac097d07e7cb9b9dc6f861ed96e7d970bd684325209dfd2839";
+const endpointSecret =
+  "whsec_07ab00d0a2e1d2ac097d07e7cb9b9dc6f861ed96e7d970bd684325209dfd2839";
 
-app.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
-  const sig = request.headers['stripe-signature'];
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  (request, response) => {
+    const sig = request.headers["stripe-signature"];
 
-  let event;
+    let event;
 
-  try {
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-  } catch (err) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        const paymentIntentSucceeded = event.data.object;
+        // Then define and call a function to handle the event payment_intent.succeeded
+        break;
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a 200 response to acknowledge receipt of the event
+    response.send();
   }
-
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntentSucceeded = event.data.object;
-      // Then define and call a function to handle the event payment_intent.succeeded
-      break;
-    // ... handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  // Return a 200 response to acknowledge receipt of the event
-  response.send();
-});
+);
 
 // Workout plan route
 app.get("/generate-workout-plan/:userId", cors(), async (req, res) => {

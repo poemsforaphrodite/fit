@@ -135,9 +135,12 @@ const Dashboard = () => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        height: "calc(100vh - 60px)",
         backgroundColor: "#FF9B9B", // Same color as Navbar
         padding: "20px",
+        paddingTop: "700x",
+        marginTop: "88px",
+        
       }}
     >
       <animated.form
@@ -156,7 +159,7 @@ const Dashboard = () => {
           borderRadius: "20px",
           boxShadow: "0 10px 20px rgba(0, 0, 0, 0.15)",
           fontSize: "1.2rem", // Increased font size
-          marginTop: "100px",
+          marginTop: "20px",
         }}
       >
         <select
@@ -294,27 +297,7 @@ const Dashboard = () => {
             <pre style={{ whiteSpace: "pre-wrap" }}>{workoutPlan}</pre>
           </div>
         )}
-
-        {currentExercises.length > 0 && (
-          <div
-            style={{
-              marginTop: "20px",
-              color: "#333",
-              backgroundColor: "#fff",
-              border: "1px solid #ddd",
-              borderRadius: "5px",
-              padding: "20px",
-              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            <h2 style={{ color: "#0093f7" }}>Current Exercises</h2>
-            {currentExercises.map((exercise, index) => (
-              <p key={index}>
-                <strong>Day {exercise.day}:</strong> {exercise.exercise}
-              </p>
-            ))}
-          </div>
-        )}
+          
       </animated.form>
     </div>
   );
