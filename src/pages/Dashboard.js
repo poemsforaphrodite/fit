@@ -89,7 +89,7 @@ const Dashboard = () => {
       desiredBodyFat,
     };
 
-    fetch(`http://localhost:8000/dashboard`, {
+    fetch(`https://fit-api.vercel.app/dashboard`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -99,7 +99,7 @@ const Dashboard = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Success:", data);
-        fetch(`http://localhost:8000/generate-workout-plan/${userId}`)
+        fetch(`https://fit-api.vercel.app/generate-workout-plan/${userId}`)
           .then((response) => response.json())
           .then((data) => {
             setWorkoutPlan(data.workoutPlan);
