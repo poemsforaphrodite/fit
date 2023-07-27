@@ -13,7 +13,6 @@ const openai = new OpenAIApi(configuration);
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
 const mongoose = require("mongoose");
-
 mongoose
   .connect(
     "mongodb+srv://pushpendersolanki895:1234@cluster0.blspoof.mongodb.net/Cluster0?retryWrites=true&w=majority",
