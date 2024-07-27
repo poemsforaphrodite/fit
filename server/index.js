@@ -69,7 +69,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:3000', // or your frontend URL
+  origin: 'https://fit-psi.vercel.app/', // or your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -112,7 +112,7 @@ app.post("/login", async (req, res) => {
         // Generate the URL for the Dashboard component
         const url = generateUrl(token, user._id, "dashboard");
         console.log(
-          `http://localhost:3000` +
+          `https://fit-psi.vercel.app/` +
             generateUrl(token, user._id, "BookAppointment")
         );
         console.log(generateUrl(token, user._id, "dashboard"));
@@ -454,8 +454,8 @@ app.post("/create-checkout-session", async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000/",
-      cancel_url: `http://localhost:3000/bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
+      success_url: "https://fit-psi.vercel.app//",
+      cancel_url: `https://fit-psi.vercel.app//bookAppointment?token=${req.body.token}&userId=${req.body.userId}`,
       metadata: {
         userId: req.body.userId,
         therapistId: req.body.therapistId,
@@ -645,5 +645,5 @@ app.put("/user/:userId", async (req, res) => {
 });
 
 app.listen(8000, () => {
-  console.log("Server is running on http://localhost:8000");
+  console.log("Server is running on fit-api.vercel.app");
 });
