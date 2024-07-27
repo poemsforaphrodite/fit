@@ -69,7 +69,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://fit-psi.vercel.app/', // or your frontend URL
+  origin: ['https://fit-psi.vercel.app', 'http://localhost:3000'], // Allow both origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
