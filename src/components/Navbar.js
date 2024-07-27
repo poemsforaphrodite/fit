@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Stack } from "@mui/material";
 import { Grid } from "@mui/material";
 import Logo from "../assets/images/Logo.png";
 import styles from './Navbar.module.css';
 
 const Navbar = ({ userId, token }) => {
-  const [currentUserId, setCurrentUserId] = useState(userId);
-  const [currentUserToken, setCurrentUserToken] = useState(token);
-  const Navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
-    setCurrentUserId(userId);
-    setCurrentUserToken(token);
+    setIsLoggedIn(!!userId && !!token);
   }, [userId, token]);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage or your state management system
+    localStorage.removeItem('userId');
+    localStorage.removeItem('token');
+    // Update the logged-in state
+    setIsLoggedIn(false);
+    // Redirect to home page or login page
+    navigate('/');
+  };
 
   const navbarStyle = {
     display: "flex",
@@ -59,24 +66,35 @@ const Navbar = ({ userId, token }) => {
               FAQ
             </Link>
           </Grid>
-          <Grid item>
-            <Link to={`/Dashboard?token=${token}&userId=${userId}`} className={styles.linkStyle}>
-              Dashboard
-            </Link>
-          </Grid>
-          <Grid item>
-            <Link to={`/BookAppointment?token=${token}&userId=${userId}`} className={styles.linkStyle}>
-              Book Appointment
-            </Link>
-          </Grid>
+          {isLoggedIn && (
+            <>
+              <Grid item>
+                <Link to={`/Dashboard?token=${token}&userId=${userId}`} className={styles.linkStyle}>
+                  Dashboard
+                </Link>
+              </Grid>
+              <Grid item>
+                <Link to={`/BookAppointment?token=${token}&userId=${userId}`} className={styles.linkStyle}>
+                  Book Appointment
+                </Link>
+              </Grid>
+            </>
+          )}
         </Grid>
       </Grid>
       <Grid item xs={12} sm={2}>
-        <a href="/Login" className={styles.loginButtonStyle}>
-          Login
-        </a>
+        {isLoggedIn ? (
+          <button onClick={handleLogout} className={styles.loginButtonStyle}>
+            Logout
+          </button>
+        ) : (
+          <Link to="/Login" className={styles.loginButtonStyle}>
+            Login
+          </Link>
+        )}
       </Grid>
     </Grid>
   );
 };
+
 export default Navbar;

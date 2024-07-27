@@ -11,12 +11,13 @@ import {
   Container,
 } from "@mui/material";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import StripeCheckout from "react-stripe-checkout";
 import { loadStripe } from "@stripe/stripe-js";
 
 const BookAppointment = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const stripePromise = loadStripe(
     "pk_test_51NUTGeSIumqhegZiJ8KVV7FwNrNEEk9JDWghGuW4IgwsNcFkHaExBt5OYo0TYi5LSpmHa6UQnx9hE3Bgyjih9Nyu00wF1xAnYm"
   );
@@ -37,7 +38,7 @@ const BookAppointment = () => {
   const therapists = ["Therapist A", "Therapist B", "Therapist C"];
   const onToken = async (token) => {
     try {
-      const response = await axios.post("https://fit-api.vercel.app/charge", {
+      const response = await axios.post("http://localhost:8000/charge", {
         stripeToken: token.id,
         // include any other information you need
       });
@@ -57,35 +58,49 @@ const BookAppointment = () => {
   useEffect(() => {
     const fetchData = async () => {
       console.log("useEffect triggered");
-      setToken(getQueryParam("token"));
-      setUserId(getQueryParam("userId"));
-      console.log("Token from query param:", getQueryParam("token"));
-      console.log("UserId from query param:", getQueryParam("userId"));
+      let fetchedToken = getQueryParam("token");
+      let fetchedUserId = getQueryParam("userId");
+
+      // If not in query params, try to get from localStorage
+      if (!fetchedToken || fetchedToken === "null") {
+        fetchedToken = localStorage.getItem("token");
+      }
+      if (!fetchedUserId || fetchedUserId === "null") {
+        fetchedUserId = localStorage.getItem("userId");
+      }
+
+      console.log("Token:", fetchedToken);
+      console.log("UserId:", fetchedUserId);
+
+      if (!fetchedToken || !fetchedUserId) {
+        navigate("/Login");
+      } else {
+        // Set states and save to localStorage
+        setToken(fetchedToken);
+        setUserId(fetchedUserId);
+        localStorage.setItem("token", fetchedToken);
+        localStorage.setItem("userId", fetchedUserId);
+      }
     };
 
     fetchData();
-  }, [location]);
+  }, [location, navigate]);
   const handleBookAppointment = async () => {
-    // console.log("handleBookAppointment called");
-    // console.log("Token being sent:", token); // Log the token being sent
-    // console.log("UserId being sent:", userId); // Log the userId being sent
-    // console.log("Date being sent:", date);
-    // console.log("Time being sent:", time);
-
     try {
       const response = await axios.post(
-        "https://fit-api.vercel.app/create-checkout-session", // Use create-checkout-session endpoint
-        { // Pass the following data to the request body
+        "http://localhost:8000/create-checkout-session",
+        {
           token,
-          userId, // Add userId to the request body
-          therapistId: 1, // Replace with actual therapist ID
+          userId,
+          therapistId: 1,
           appointmentDate: date,
           appointmentTime: time,
           status: "pending",
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Add the token to the request headers
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
         }
       );

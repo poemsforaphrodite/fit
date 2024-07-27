@@ -11,25 +11,21 @@ function Signup() {
     e.preventDefault();
 
     try {
-      await axios
-        .post("https://fit-api.vercel.app/signup", {
-          email,
-          password,
-        })
-        .then((res) => {
-          if (res.data == "exist") {
-            alert("user already exists");
-          } else if (res.data == "not exist") {
-            history("/home", { state: { id: _id } });
-          } else {
-            alert("error");
-          }
-        })
-        .catch((err) => {
-          console.log("Axios post error:", err);
-        });
+      const response = await axios.post("http://localhost:8000/signup", {
+        email,
+        password,
+      });
+      
+      if (response.data === "exist") {
+        alert("User already exists");
+      } else if (response.data === "not exist") {
+        history("/home", { state: { id: email } });
+      } else {
+        alert("Error occurred during signup");
+      }
     } catch (err) {
-      console.log(err);
+      console.log("Axios post error:", err);
+      alert("An error occurred. Please try again.");
     }
   }
   return (

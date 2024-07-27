@@ -1,305 +1,205 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-const { Configuration, OpenAIApi } = require("openai");
-import { animated, useSpring } from "react-spring";
-const configuration = new Configuration({
-  apiKey: "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",
-});
-const openai = new OpenAIApi(configuration);
+import { useLocation } from "react-router-dom";
+import { format } from 'date-fns';
+import { Slider, Typography, Paper, Grid, Box, TextField, Button } from '@mui/material';
+import ReactMarkdown from 'react-markdown';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
-  const [sex, setSex] = useState("");
-  const [age, setAge] = useState("");
-  const [height, setHeight] = useState("");
-  const [heightUnit, setUnitHeight] = useState("cm");
-  const [weight, setWeight] = useState("");
-  const [weightUnit, setWeightUnit] = useState("kg");
-  const [fitnessGoals, setFitnessGoals] = useState("");
-  const [bodyFat, setBodyFat] = useState("");
-  const [desiredBodyFat, setDesiredBodyFat] = useState("");
+  const [token, setToken] = useState("");
+  const [upcomingMeeting, setUpcomingMeeting] = useState(null);
   const [workoutPlan, setWorkoutPlan] = useState("");
-  const [currentExercises, setCurrentExercises] = useState([]); // Added state for current exercises
+  const [age, setAge] = useState(12);
+  const [weight, setWeight] = useState(50);
+  const [height, setHeight] = useState(150);
+  const [currentBodyFat, setCurrentBodyFat] = useState(20);
+  const [desiredBodyFat, setDesiredBodyFat] = useState(15);
+
   const location = useLocation();
-  const [exercisesGenerated, setExercisesGenerated] = useState(false);
 
-  // Function to parse query parameters
-  const getQueryParam = (name) => {
-    return new URLSearchParams(location.search).get(name);
-  };
-  const formAnimation = useSpring({
-    from: { opacity: 0 },
-    to: { opacity: 1 },
-    delay: 200,
-  });
   useEffect(() => {
-    const fetchExercises = async () => {
+    const searchParams = new URLSearchParams(location.search);
+    setUserId(searchParams.get("userId") || "");
+    setToken(searchParams.get("token") || "");
+  }, [location]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (userId) {
         try {
-            const response = await fetch(`https://fit-api.vercel.app/get-exercises/${userId}`);
-            const data = await response.json();
-
-            if (data && data.exercises) {
-                setCurrentExercises(data.exercises);
-            }
+          const response = await fetch(`http://localhost:8000/user/${userId}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const userData = await response.json();
+          if (userData.appointmentDate && userData.appointmentTime) {
+            setUpcomingMeeting({
+              date: userData.appointmentDate,
+              time: userData.appointmentTime,
+              zoomLink: userData.zoomMeetingJoinUrl
+            });
+          }
+          if (userData.workoutPlan) {
+            setWorkoutPlan(userData.workoutPlan);
+          }
+          setAge(userData.age || 12);
+          setWeight(userData.weight || 50);
+          setHeight(userData.height || 150);
         } catch (error) {
-            console.error('Error fetching exercises:', error);
+          console.error('Error fetching user data:', error);
         }
-    };
-
-    if (userId) { // Only fetch exercises if userId is set
-        fetchExercises();
-    }
-}, [userId]); // Run this effect whenever userId changes
-  useEffect(() => {
-    const fetchData = async () => {
-      console.log("useEffect triggered");
-      const fetchedToken = getQueryParam("token");
-      const fetchedUserId = getQueryParam("userId");
-      console.log("Token from query param:", fetchedToken);
-      console.log("UserId from query param:", fetchedUserId);
-
-      if (
-        !fetchedToken ||
-        fetchedToken === "null" ||
-        !fetchedUserId ||
-        fetchedUserId === "null"
-      ) {
-        navigate("/Login");
-      } else {
-        // Only set states if token and userId are not null
-        setToken(fetchedToken);
-        setUserId(fetchedUserId);
       }
     };
 
-    fetchData();
-  }, [location, navigate]); // No need to watch token and userId
+    fetchUserData();
+  }, [userId]);
 
-  const handleOnSubmit = () => {
-    const user = {
-      userId, // Use userId instead of email
-      sex,
-      age,
-      height: heightUnit === "ft" ? height * 30.48 : height,
-      weight: weightUnit === "lbs" ? weight * 0.453592 : weight,
-      fitnessGoals,
-      bodyFat,
-      desiredBodyFat,
-    };
-
-    fetch(`https://fit-api.vercel.app/dashboard`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-        fetch(`https://fit-api.vercel.app/generate-workout-plan/${userId}`)
-          .then((response) => response.json())
-          .then((data) => {
-            setWorkoutPlan(data.workoutPlan);
-            setExercisesGenerated(true);
-          })
-          .catch((error) => {
-            console.error("Error generating workout plan:", error);
-          });
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+  const handleSubmit = async () => {
+    if (userId) {
+      const url = `http://localhost:8000/user/${userId}`;
+      console.log('Sending request to:', url);
+      try {
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            age,
+            weight,
+            height,
+            currentBodyFat,
+            desiredBodyFat,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        alert('User data updated successfully!');
+      } catch (error) {
+        console.error('Error updating user data:', error);
+        alert('Failed to update user data. Please try again.');
+      }
+    }
   };
 
-  function parseWorkoutPlan(workoutPlan) {
-    const days = workoutPlan.split("\n\n");
+  const containerStyle = {
+    display: "flex",
+    backgroundColor: "#FFD4D4",
+    minHeight: "100vh",
+    padding: "20px",
+  };
 
-    const exercises = days.map((day) => {
-      const [dayName, ...exerciseLines] = day.split("\n");
-      const exercises = exerciseLines.map((line) => line.substring(3)); // remove "1. " prefix
-      return {
-        day: dayName,
-        exercises,
-      };
-    });
+  const sidebarStyle = {
+    width: "300px",
+    marginRight: "20px",
+  };
 
-    return exercises;
-  }
+  const contentStyle = {
+    flex: 1,
+    maxWidth: "800px",
+  };
+
+  const paperStyle = {
+    backgroundColor: "#FFFEC4",
+    padding: "20px",
+    borderRadius: "10px",
+    marginBottom: "20px",
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "calc(100vh - 60px)",
-        backgroundColor: "#FF9B9B", // Same color as Navbar
-        padding: "20px",
-        paddingTop: "700x",
-        marginTop: "88px",
-        
-      }}
-    >
-      <animated.form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleOnSubmit();
-        }}
-        style={{
-          ...formAnimation,
-          display: "flex",
-          flexDirection: "column",
-          width: "80%",
-          gap: "20px",
-          backgroundColor: "#FFFEC4",
-          padding: "30px",
-          borderRadius: "20px",
-          boxShadow: "0 10px 20px rgba(0, 0, 0, 0.15)",
-          fontSize: "1.2rem", // Increased font size
-          marginTop: "20px",
-        }}
-      >
-        <select
-          value={fitnessGoals}
-          onChange={(e) => setFitnessGoals(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ddd",
-          }}
-        >
-          <option value="">Select Main Goal</option>
-          <option value="lose weight">Lose Weight</option>
-          <option value="get fitter">Get Fitter</option>
-          <option value="build muscle">Build Muscle</option>
-        </select>
+    <Box sx={containerStyle}>
+      <Box sx={sidebarStyle}>
+        <Paper elevation={3} sx={paperStyle}>
+          <Typography variant="h6" gutterBottom>Your Stats</Typography>
+          <Box mb={2}>
+            <Typography gutterBottom>Age: {age}</Typography>
+            <Slider
+              value={age}
+              onChange={(_, newValue) => setAge(newValue)}
+              min={5}
+              max={100}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+          <Box mb={2}>
+            <Typography gutterBottom>Weight (kg): {weight}</Typography>
+            <Slider
+              value={weight}
+              onChange={(_, newValue) => setWeight(newValue)}
+              min={20}
+              max={200}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+          <Box mb={2}>
+            <Typography gutterBottom>Height (cm): {height}</Typography>
+            <Slider
+              value={height}
+              onChange={(_, newValue) => setHeight(newValue)}
+              min={100}
+              max={250}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Current Body Fat %"
+              type="number"
+              value={currentBodyFat}
+              onChange={(e) => setCurrentBodyFat(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+          <Box mb={2}>
+            <TextField
+              label="Desired Body Fat %"
+              type="number"
+              value={desiredBodyFat}
+              onChange={(e) => setDesiredBodyFat(Number(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+          </Box>
+          <Box mt={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              fullWidth
+            >
+              Save Changes
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
 
-        <input
-          type="number"
-          placeholder="Age"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ddd",
-          }}
-        />
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <input
-            type="number"
-            placeholder="Height"
-            value={height}
-            onChange={(e) => setHeight(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ddd",
-            }}
-          />
-          <select
-            value={heightUnit}
-            onChange={(e) => setUnitHeight(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ddd",
-              marginLeft: "10px",
-            }}
-          >
-            <option value="cm">cm</option>
-            <option value="ft">ft</option>
-          </select>
-        </div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <input
-            type="number"
-            placeholder="Weight"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ddd",
-            }}
-          />
-          <select
-            value={weightUnit}
-            onChange={(e) => setWeightUnit(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ddd",
-              marginLeft: "10px",
-            }}
-          >
-            <option value="kg">kg</option>
-            <option value="lbs">lbs</option>
-          </select>
-        </div>
-
-        <input
-          type="number"
-          placeholder="Current Body Fat"
-          value={bodyFat}
-          onChange={(e) => setBodyFat(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ddd",
-          }}
-        />
-        <input
-          type="number"
-          placeholder="Desired Body Fat"
-          value={desiredBodyFat}
-          onChange={(e) => setDesiredBodyFat(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "5px",
-            border: "1px solid #ddd",
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "20px",
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: "#0093f7",
-            color: "#fff",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "1.2rem", // Increased font size
-            boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)", // Add shadow effect
-            transition: "all 0.3s ease", // Add smooth transition
-          }}
-        >
-          Submit
-        </button>
+      <Box sx={contentStyle}>
+        {upcomingMeeting && (
+          <Paper elevation={3} sx={paperStyle}>
+            <Typography variant="h5" gutterBottom>Upcoming Meeting</Typography>
+            <Typography>Date: {format(new Date(upcomingMeeting.date), 'MMMM d, yyyy')}</Typography>
+            <Typography>Time: {upcomingMeeting.time}</Typography>
+            <Typography>
+              Zoom Link:{' '}
+              <a href={upcomingMeeting.zoomLink} target="_blank" rel="noopener noreferrer">
+                Join Meeting
+              </a>
+            </Typography>
+          </Paper>
+        )}
 
         {workoutPlan && (
-          <div
-            style={{
-              marginTop: "20px",
-              color: "#333",
-              backgroundColor: "#fff",
-              border: "1px solid #ddd",
-              borderRadius: "5px",
-              padding: "20px",
-              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            <h2 style={{ color: "#0093f7" }}>Generated Workout Plan</h2>
-            <pre style={{ whiteSpace: "pre-wrap" }}>{workoutPlan}</pre>
-          </div>
+          <Paper elevation={3} sx={paperStyle}>
+            <Typography variant="h5" gutterBottom>Your Workout Plan</Typography>
+            <ReactMarkdown>{workoutPlan}</ReactMarkdown>
+          </Paper>
         )}
-          
-      </animated.form>
-    </div>
+      </Box>
+    </Box>
   );
 };
+
 export default Dashboard;
