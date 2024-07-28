@@ -8,7 +8,7 @@ const HeroBanner = () => (
     <Typography color="#E30B5D" fontWeight="600" fontSize="26px">Core Therapy for Women</Typography>
     <Typography fontWeight={700} sx={{ fontSize: { lg: '44px', xs: '40px' } }} mb="23px" mt="30px">
       Restore, Strengthen <br />
-      And Heal
+      And Heal asdsasdad
     </Typography>
     <Typography fontSize="22px" fontFamily="Alegreya" lineHeight="35px">
       Discover personalized therapeutic core exercises designed for women
