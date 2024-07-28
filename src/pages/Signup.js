@@ -11,7 +11,7 @@ function Signup() {
     e.preventDefault();
 
     try {
-      const response = await axios.post("fit-api.vercel.app/signup", {
+      const response = await axios.post("https://fit-api.vercel.app/signup", {
         email,
         password,
       });

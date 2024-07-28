@@ -27,7 +27,7 @@ const Dashboard = () => {
     const fetchUserData = async () => {
       if (userId) {
         try {
-          const response = await fetch(`fit-api.vercel.app/user/${userId}`);
+          const response = await fetch(`https://fit-api.vercel.app/user/${userId}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -56,7 +56,7 @@ const Dashboard = () => {
 
   const handleSubmit = async () => {
     if (userId) {
-      const url = `fit-api.vercel.app/user/${userId}`;
+      const url = `https://fit-api.vercel.app/user/${userId}`;
       console.log('Sending request to:', url);
       try {
         const response = await fetch(url, {

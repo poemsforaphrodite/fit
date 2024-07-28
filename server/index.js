@@ -645,5 +645,5 @@ app.put("/user/:userId", async (req, res) => {
 });
 
 app.listen(8000, () => {
-  console.log("Server is running on fit-api.vercel.app");
+  console.log("Server is running on https://fit-api.vercel.app");
 });

@@ -38,7 +38,7 @@ const BookAppointment = () => {
   const therapists = ["Therapist A", "Therapist B", "Therapist C"];
   const onToken = async (token) => {
     try {
-      const response = await axios.post("fit-api.vercel.app/charge", {
+      const response = await axios.post("https://fit-api.vercel.app/charge", {
         stripeToken: token.id,
         // include any other information you need
       });
@@ -88,7 +88,7 @@ const BookAppointment = () => {
   const handleBookAppointment = async () => {
     try {
       const response = await axios.post(
-        "fit-api.vercel.app/create-checkout-session",
+        "https://fit-api.vercel.app/create-checkout-session",
         {
           token,
           userId,
