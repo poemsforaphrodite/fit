@@ -635,6 +635,10 @@ app.put("/user/:userId", async (req, res) => {
     user.currentBodyFat = currentBodyFat || user.currentBodyFat;
     user.desiredBodyFat = desiredBodyFat || user.desiredBodyFat;
 
+    // Generate a new workout plan
+    const workoutPlan = await generateWorkoutPlanWithOpenAI(user);
+    user.workoutPlan = workoutPlan;
+
     await user.save();
 
     res.json({ message: "User data updated successfully", user });
